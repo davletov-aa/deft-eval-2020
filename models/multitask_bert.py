@@ -6,10 +6,10 @@ import torch
 from itertools import groupby
 
 from .examples_to_features import (
-    SENTENCE_START,
-    SENTENCE_END,
-    SUBJECT_START,
-    SUBJECT_END
+    SENTENCE_START as sst,
+    SENTENCE_END as snd,
+    SUBJECT_START as sbjst,
+    SUBJECT_END as sbjnd
 )
 
 class InputFeatures(object):
