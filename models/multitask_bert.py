@@ -353,7 +353,7 @@ class BertForMultitaskLearning(BertPreTrainedModel):
                 msg_task_1 = " ".join(label2id["sent_type"].keys())
                 msg_task_2 = " ".join(label2id["tags_sequence"].keys())
                 msg_task_3 = " ".join(label2id["relations_sequence"].keys())
-                
+
                 err_message = '\n\n'.join([
                     f'sent_type: {example.sent_type}',
                     f'label2id[sent_type]: {msg_task_1}',
@@ -399,7 +399,7 @@ class BertForMultitaskLearning(BertPreTrainedModel):
                         [str(x) for x in input_ids]
                     ))
                     logger.info("sent_type: %s (id = %d)" % (
-                        example.text_label, sent_type_id
+                        example.sent_type, sent_type_id
                     ))
                     logger.info("token_valid_pos_ids: %s" % " ".join(
                         [str(x) for x in token_valid_pos_ids]
