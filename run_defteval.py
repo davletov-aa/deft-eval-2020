@@ -690,7 +690,7 @@ if __name__ == "__main__":
     parser.add_argument("--output_dir", default=None, type=str, required=True,
                         help="The output directory where the model predictions and checkpoints will be written.")
 
-    parser.add_argument("--eval_per_epoch", default=3, type=int,
+    parser.add_argument("--eval_per_epoch", default=4, type=int,
                         help="How many times to do validation on dev set per epoch")
     parser.add_argument("--max_seq_length", default=256, type=int,
                         help="The maximum total input sequence length after WordPiece tokenization.\n"
@@ -707,7 +707,7 @@ if __name__ == "__main__":
                         help="Total batch size for training.")
     parser.add_argument("--eval_batch_size", default=8, type=int,
                         help="Total batch size for eval.")
-    parser.add_argument("--eval_metric", default="text_weighted avg_f1-score", type=str)
+    parser.add_argument("--eval_metric", default="sent_type_1_f1-score", type=str)
     parser.add_argument("--learning_rate", default=None, type=float,
                         help="The initial learning rate for Adam.")
     parser.add_argument("--num_train_epochs", default=5.0, type=float,
@@ -722,7 +722,7 @@ if __name__ == "__main__":
                         help="the weight of task 1")
     parser.add_argument("--tags_sequence_clf_weight", default=1.0, type=float,
                         help="The weight of task 2")
-    parser.add_argument("--relations_sequence_clf_weight", default=1.0, type=float,
+    parser.add_argument("--relations_sequence_clf_weight", default=0.0, type=float,
                         help="The weight of task 3")
 
     parser.add_argument("--weight_decay", default=0.1, type=float,
@@ -741,7 +741,10 @@ if __name__ == "__main__":
 
     parser.add_argument("--subtokens_pooling_type", type=str, default="first",
                         help="pooling mode in bert-ner, one of avg or first")
-    parser.add_argument("--lr_schedule", type=str, default="constant_warmup",
+    parser.add_argument("--sequence_mode", type=str, default="not-all",
+                        help="train to predict for all subtokens or not"
+                        "all or not-all")
+    parser.add_argument("--lr_schedule", type=str, default="linear_warmup",
                         help="lr adjustment schedule")
     arguments = parser.parse_args()
     main(arguments)
