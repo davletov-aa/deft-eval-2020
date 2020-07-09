@@ -613,7 +613,7 @@ def main(args):
             'tags_sequence': 'O',
             'relations_sequence': '0'
         }
-        for task in ['tags_sequence', 'relations_sequence']
+        for task in ['tags_sequence', 'relations_sequence']:
             aggregated_results[task] = [
                 list(pred[orig_positions]) + \
                 [
