@@ -516,7 +516,7 @@ def main(args):
                         model, device, eval_dataloader,
                         eval_sent_type_labels_ids,
                         eval_tags_sequence_labels_ids,
-                        eval_relations_sequence_labels_ids
+                        eval_relations_sequence_labels_ids,
                         label2id, cur_train_mean_loss=cur_train_mean_loss
                     )
                     model.train()
