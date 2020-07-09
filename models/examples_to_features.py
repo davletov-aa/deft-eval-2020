@@ -19,8 +19,8 @@ class InputExample(object):
         guid: str,
         tokens: list,
         sent_type: str,
-        tags: list,
-        relations: list,
+        tags_sequence: list,
+        relations_sequence: list,
         tags_ids: list,
         sent_start: int,
         sent_end: int,
@@ -34,8 +34,8 @@ class InputExample(object):
         self.guid = guid
         self.tokens = tokens
         self.sent_type = sent_type
-        self.tags = tags
-        self.relations = relations
+        self.tags_sequence = tags_sequence
+        self.relations_sequence = relations_sequence
         self.tags_ids = tags_ids
         self.sent_start = sent_start
         self.sent_end = sent_end
@@ -136,8 +136,8 @@ class DataProcessor(object):
                     guid=f"{set_type}-{example['idx']}",
                     tokens=example["tokens"],
                     sent_type=example["sent_type"],
-                    tags=example["tags_sequence"],
-                    relations=example["relations_sequence"],
+                    tags_sequence=example["tags_sequence"],
+                    relations_sequence=example["relations_sequence"],
                     tags_ids=example["tags_ids"],
                     sent_start=example["sent_start"],
                     sent_end=example["sent_end"],
