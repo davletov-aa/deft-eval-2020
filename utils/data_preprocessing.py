@@ -350,7 +350,7 @@ def create_multitask_examples(
                     'tokens': token,
                     'sent_start': sent_start,
                     'sent_end': sent_end,
-                    'sent_class': sent_type_label,
+                    'sent_type': sent_type_label,
                     'tags_sequence': tag[:len(token)],
                     'subj_start': subj_start,
                     'subj_end': subj_end,
