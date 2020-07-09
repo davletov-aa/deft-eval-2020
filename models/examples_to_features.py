@@ -12,12 +12,6 @@ import json
 from collections import Counter
 
 
-SENTENCE_START = '•'
-SENTENCE_END = '•'
-SUBJECT_START = '⁄'
-SUBJECT_END = '⁄'
-
-
 class InputExample(object):
 
     def __init__(
