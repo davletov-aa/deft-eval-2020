@@ -5,7 +5,7 @@ from torch.nn import CrossEntropyLoss
 import torch
 from itertools import groupby
 
-from examples_to_features import (
+from models.examples_to_features import (
     SENTENCE_START,
     SENTENCE_END,
     SUBJECT_START,
