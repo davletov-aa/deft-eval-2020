@@ -200,7 +200,7 @@ tokenizers = {
 }
 
 models = {
-    "bert-large-uncased": BertForMultitaskLearning
+    "bert-large-uncased": BertForMultitaskLearning,
     "roberta-large": RobertaForMultitaskLearning
 }
 
