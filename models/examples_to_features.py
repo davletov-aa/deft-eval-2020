@@ -90,9 +90,9 @@ class DataProcessor(object):
         counter = Counter()
         labels = []
         for example in dataset:
-            counter[example['sent_class']] += 1
+            counter[example['sent_type']] += 1
         if logger is not None:
-            logger.info(f"sent_class: {len(counter)} labels")
+            logger.info(f"sent_type: {len(counter)} labels")
         for label, counter in counter.most_common():
             if logger is not None:
                 logger.info("%s: %.2f%%" % (label, counter * 100.0 / len(dataset)))
