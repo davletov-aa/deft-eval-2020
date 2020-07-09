@@ -350,21 +350,17 @@ class BertForMultitaskLearning(BertPreTrainedModel):
                     (max_seq_length - len(relations_sequence_ids))
 
             except KeyError:
+                msg_task_1 = " ".join(label2id["sent_type"].keys())
+                msg_task_2 = " ".join(label2id["tags_sequence"].keys())
+                msg_task_3 = " ".join(label2id["relations_sequence"].keys())
+                
                 err_message = '\n\n'.join([
                     f'sent_type: {example.sent_type}',
-                    f'label2id[sent_type]: {
-                        " ".join(label2id["sent_type"].keys())
-                    }',
+                    f'label2id[sent_type]: {msg_task_1}',
                     f'tags_sequence: {" ".join(tags_sequence_labels)}',
-                    f'label2id[tags_sequence]: {
-                        " ".join(label2id["tags_sequence"].keys())
-                    }',
-                    f'relations_sequence: {
-                        " ".join(relations_sequence_labels)
-                    }',
-                    f'label2id[relations_sequence]: {
-                        " ".join(label2id["relations_sequence"].keys())
-                    }'
+                    f'label2id[tags_sequence]: {msg_task_2}',
+                    f'relations_sequence: {" ".join(relations_sequence_labels)}',
+                    f'label2id[relations_sequence]: {msg_task_3}'
                 ])
                 # print(f'sent_type: {example.sent_type}')
                 # print(f'label2id[sent_type]: {
