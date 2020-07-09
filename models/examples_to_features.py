@@ -133,7 +133,7 @@ class DataProcessor(object):
         for example in dataset:
             examples.append(
                 InputExample(
-                    guid=f"{sent_type}-{example['idx']}",
+                    guid=f"{set_type}-{example['idx']}",
                     tokens=example["tokens"],
                     sent_type=example["sent_type"],
                     tags=example["tags_sequence"],
