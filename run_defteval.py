@@ -738,12 +738,9 @@ if __name__ == "__main__":
                         help="Number of updates steps to accumulate before performing a backward/update pass.")
     parser.add_argument("--multi_task_tasks_1_and_2", action="store_true",
                         help="multi-task training only on task 1 and 2")
-    parser.add_argument("--only_bert_ner", action="store_true",
-                        help="whether to train only task 2 with bert-ner")
+
     parser.add_argument("--subtokens_pooling_type", type=str, default="first",
                         help="pooling mode in bert-ner, one of avg or first")
-    parser.add_argument("--subtokens_pooling_type", type=str, default="first",
-                        help="predict for all subtokens or for pooled ones")
     parser.add_argument("--lr_schedule", type=str, default="constant_warmup",
                         help="lr adjustment schedule")
     arguments = parser.parse_args()
