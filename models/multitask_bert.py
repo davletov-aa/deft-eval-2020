@@ -5,6 +5,12 @@ from torch.nn import CrossEntropyLoss
 import torch
 from itertools import groupby
 
+from examples_to_features import (
+    SENTENCE_START,
+    SENTENCE_END,
+    SUBJECT_START,
+    SUBJECT_END
+)
 
 class InputFeatures(object):
 
@@ -362,20 +368,6 @@ class BertForMultitaskLearning(BertPreTrainedModel):
                     f'relations_sequence: {" ".join(relations_sequence_labels)}',
                     f'label2id[relations_sequence]: {msg_task_3}'
                 ])
-                # print(f'sent_type: {example.sent_type}')
-                # print(f'label2id[sent_type]: {
-                #     " ".join(label2id["sent_type"].keys())
-                # }')
-                # print(f'tags_sequence: {" ".join(tags_sequence_labels)}')
-                # print(f'label2id[tags_sequence]: {
-                #     " ".join(label2id["tags_sequence"].keys())
-                # }')
-                # print(f'relations_sequence: {
-                #     " ".join(relations_sequence_labels)
-                # }')
-                # print(f'label2id[relations_sequence]: {
-                #     " ".join(label2id["relations_sequence"].keys())
-                # }')
                 raise KeyError(err_message)
 
             assert len(input_ids) == max_seq_length

@@ -12,6 +12,12 @@ import json
 from collections import Counter
 
 
+SENTENCE_START = '•'
+SENTENCE_END = '•'
+SUBJECT_START = '⁄'
+SUBJECT_END = '⁄'
+
+
 class InputExample(object):
 
     def __init__(
@@ -83,7 +89,9 @@ class DataProcessor(object):
 
     def get_test_examples(self, test_file):
         return self.create_examples(
-            self._read_json(test_file), "test")
+            self._read_json(test_file),
+            "test"
+        )
 
     def get_sent_type_labels(self, data_dir, logger=None):
         dataset = self._read_json(os.path.join(data_dir, f"train.json"))
