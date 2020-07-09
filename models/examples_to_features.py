@@ -152,7 +152,7 @@ class DataProcessor(object):
         return examples
 
 
-def get_dataloader_and_target_tensors(
+def get_dataloader_and_tensors(
         features: list,
         batch_size: int
 ):
