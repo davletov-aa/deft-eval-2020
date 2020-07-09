@@ -557,8 +557,8 @@ def main(args):
                         )
 
                     if save_model:
-                        model_to_save = model.module if
-                            hasattr(model, 'module') else model
+                        model_to_save = \
+                            model.module if hasattr(model, 'module') else model
                         output_model_file = os.path.join(
                             args.output_dir, WEIGHTS_NAME
                         )
