@@ -288,8 +288,8 @@ def main(args):
         },
         'tags_sequence': {
             label: i for i, label in enumerate(tags_sequence_labels_list, 1)
-        }
-        'relationss_sequence': {
+        },
+        'relations_sequence': {
             label: i for i, label in enumerate(relations_sequence_labels_list, 1)
         }
      }
@@ -300,8 +300,8 @@ def main(args):
         },
         'tags_sequence': {
             i: label for i, label in enumerate(tags_sequence_labels_list, 1)
-        }
-        'relationss_sequence': {
+        },
+        'relations_sequence': {
             i: label for i, label in enumerate(relations_sequence_labels_list, 1)
         }
     }
