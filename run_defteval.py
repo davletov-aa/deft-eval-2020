@@ -583,8 +583,7 @@ def main(args):
                                     )
     if args.do_eval:
         test_file = os.path.join(
-            args.data_dir, 'test.json') if
-            args.test_file == '' else args.test_file
+            args.data_dir, 'test.json') if args.test_file == '' else args.test_file
         eval_examples = processor.get_test_examples(test_file)
 
         eval_features = model.convert_examples_to_features(
