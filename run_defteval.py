@@ -146,9 +146,9 @@ def evaluate(
                 input_ids=input_ids,
                 token_type_ids=segment_ids,
                 attention_mask=input_mask,
-                sent_type_labels=None,
-                tags_sequence_labels=None,
-                relations_sequence_labels=None,
+                sent_type_labels=sent_type_labels_ids,
+                tags_sequence_labels=tags_sequence_labels_ids,
+                relations_sequence_labels=relations_sequence_labels_ids,
                 token_valid_pos_ids=token_valid_pos_ids,
                 device=device
             )
