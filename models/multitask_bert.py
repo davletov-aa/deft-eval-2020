@@ -352,7 +352,7 @@ class BertForMultitaskLearning(BertPreTrainedModel):
                             ],
                             mask=[1],
                             offset_step=1,
-                            token_valid_pos_id=[offset + i],
+                            token_valid_pos_id=[offset + i + 1],
                             orig_position=[]
                         )
                     if i == example.sent_end:
@@ -364,7 +364,7 @@ class BertForMultitaskLearning(BertPreTrainedModel):
                             ],
                             mask=[1],
                             offset_step=1,
-                            token_valid_pos_id=[offset + i],
+                            token_valid_pos_id=[offset + i + 1],
                             orig_position=[]
                         )
                 else:
