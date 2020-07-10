@@ -92,7 +92,7 @@ def compute_all_metrics(
     id2label['weighted avg'] = 'weighted-avg'
     for x in eval_relations_sequence_labels + ['weighted avg']:
         for metrics in ['precision', 'recall', 'f1-score', 'support']:
-            result[f"tags_sequence_{id2label[x]}_{metrics}"] = \
+            result[f"relations_sequence_{id2label[x]}_{metrics}"] = \
                 round(task_3_report[str(x)][metrics], 6)
 
     eval_logger.info("=====================================")
@@ -474,7 +474,7 @@ def main(args):
                     return_outputs=False
                 )
                 for key in train_loss:
-                    cur_train_loss[key] += train_loss[key]
+                    cur_train_loss[key] += train_loss[key].mean().item()
 
                 loss_to_optimize = train_loss['weighted_loss']
                 if n_gpu > 1:
