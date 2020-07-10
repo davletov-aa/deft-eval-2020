@@ -32,6 +32,8 @@ def search(config_path: str, grid_path: str):
 			if value:
 				default_cmd.append(f'--{key}')
 			continue
+		if key == 'test_file':
+			continue
 		default_cmd.append(f'--{key} {value}')
 
 	params = [
