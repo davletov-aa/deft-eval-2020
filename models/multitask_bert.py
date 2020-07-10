@@ -278,7 +278,7 @@ class BertForMultitaskLearning(BertPreTrainedModel):
             tags_sequence_labels += tags_sequence_label
             relations_sequence_labels += relations_sequence_label
             attention_mask += mask
-            offset += offset
+            offset += offset_step
             token_valid_pos_ids += token_valid_pos_id
             if orig_position and orig_position[-1] < max_seq_length:
                 orig_positions_map += orig_position
