@@ -266,6 +266,21 @@ class BertForMultitaskLearning(BertPreTrainedModel):
         sep_token = "[SEP]"
         cls_token = "[CLS]"
 
+
+        def update_example_data(
+            token=[], tags_sequence_label=[],
+            relations_sequence_label=[], mask=[1], offset_step=0,
+            token_valid_pos_id=[], orig_position=[]
+        ):
+            tokens += token
+            tags_sequence_labels += tags_sequence_label
+            relations_sequence_labels += relations_sequence_label
+            attention_mask += mask
+            offset += offset
+            token_valid_pos_ids += token_valid_pos_id
+            if orig_position and orig_position[-1] < max_seq_length:
+                orig_positions_map += orig_position
+
         for (ex_index, example) in enumerate(examples):
             if ex_index % 10000 == 0:
                 logger.info(
@@ -281,8 +296,8 @@ class BertForMultitaskLearning(BertPreTrainedModel):
             relations_sequence_labels = [neg_relations_sequence_label]
             attention_mask = [1]
             offset = len(tokens)
-            orig_positions_map = []
             token_valid_pos_ids = [0]
+            orig_positions_map = []
 
             for i, (token, tags_sequence_label,
                 relations_sequence_label) in enumerate(
@@ -297,14 +312,62 @@ class BertForMultitaskLearning(BertPreTrainedModel):
                 if sequence_mode == 'all':
                     pass
                 elif sequence_mode == 'not-all':
+                    if i == example.sent_start:
+                        update_example_data(
+                            token=[SENTENCE_START],
+                            tags_sequence_label=[neg_tags_sequence_label],
+                            relations_sequence_label=[
+                                neg_relations_sequence_label
+                            ],
+                            mask=[1],
+                            offset_step=1,
+                            token_valid_pos_id=[offset + i],
+                            orig_position=[]
+                        )
+                    if i == example.subj_start:
+                        update_example_data(
+                            token=[SUBJECT_START],
+                            tags_sequence_label=[neg_tags_sequence_label],
+                            relations_sequence_label=[
+                                neg_relations_sequence_label
+                            ],
+                            mask=[1],
+                            offset_step=1,
+                            token_valid_pos_id=[offset + i],
+                            orig_position=[]
+                        )
                     if offset + i < max_seq_length:
                         orig_positions_map.append(offset + i)
                     token_valid_pos_ids += [offset + i] * num_sub_tokens
                     tags_sequence_labels.append(tags_sequence_label)
                     relations_sequence_labels.append(relations_sequence_label)
+                    if i == example.subj_end:
+                        update_example_data(
+                            token=[SUBJECT_END],
+                            tags_sequence_label=[neg_tags_sequence_label],
+                            relations_sequence_label=[
+                                neg_relations_sequence_label
+                            ],
+                            mask=[1],
+                            offset_step=1,
+                            token_valid_pos_id=[offset + i],
+                            orig_position=[]
+                        )
+                    if i == example.sent_end:
+                        update_example_data(
+                            token=[SENTENCE_END],
+                            tags_sequence_label=[neg_tags_sequence_label],
+                            relations_sequence_label=[
+                                neg_relations_sequence_label
+                            ],
+                            mask=[1],
+                            offset_step=1,
+                            token_valid_pos_id=[offset + i],
+                            orig_position=[]
+                        )
                 else:
                     raise ValueError(
-                        f'sequence_mode: expected on of all or not-all'
+                        f'sequence_mode: expected either all or not-all'
                     )
 
                 tokens += sub_tokens
