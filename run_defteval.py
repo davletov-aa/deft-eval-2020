@@ -72,7 +72,7 @@ def compute_all_metrics(
     )
 
     result = {}
-    for x in ['0', '1', 'weighted avg']:
+    for x in ['0', '1', 'weighted avg', 'macro avg']:
         for metrics in ['precision', 'recall', 'f1-score', 'support']:
             result[f"sent_type_{x.replace(' ', '-')}_{metrics}"] = \
                 round(task_1_report[x][metrics], 6)
@@ -81,7 +81,8 @@ def compute_all_metrics(
         val: key for key, val in label2id['tags_sequence'].items()
     }
     id2label['weighted avg'] = 'weighted-avg'
-    for x in eval_tags_sequence_labels + ['weighted avg']:
+    id2label['macro avg'] = 'macro-avg'
+    for x in eval_tags_sequence_labels + ['weighted avg', 'macro avg']:
         for metrics in ['precision', 'recall', 'f1-score', 'support']:
             result[f"tags_sequence_{id2label[x]}_{metrics}"] = \
                 round(task_2_report[str(x)][metrics], 6)
@@ -90,7 +91,8 @@ def compute_all_metrics(
         val: key for key, val in label2id['relations_sequence'].items()
     }
     id2label['weighted avg'] = 'weighted-avg'
-    for x in eval_relations_sequence_labels + ['weighted avg']:
+    id2label['macro avg'] = 'macro-avg'
+    for x in eval_relations_sequence_labels + ['weighted avg', 'macro avg']:
         for metrics in ['precision', 'recall', 'f1-score', 'support']:
             result[f"relations_sequence_{id2label[x]}_{metrics}"] = \
                 round(task_3_report[str(x)][metrics], 6)
@@ -212,6 +214,8 @@ def evaluate(
         for key in sorted(result.keys()):
             logger.info("  %s = %s", key, str(result[key]))
 
+    model.train()
+
     return preds, result, scores
 
 
@@ -263,10 +267,16 @@ def main(args):
     logger.info("device: {}, n_gpu: {}".format(device, n_gpu))
 
     processor = DataProcessor(
-        filter_task_3=args.multi_task_tasks_1_and_2
+        filter_task_1=args.filter_task_1,
+        filter_task_3=args.filter_task_3
     )
 
-    if args.multi_task_tasks_1_and_2:
+    if args.filter_task_1:
+        assert args.sent_type_clf_weight == 0.0
+        assert args.eval_metric.startswith('tags_sequence') or \
+            args.eval_metric.startswith('relations_sequence')
+
+    if args.filter_task_3:
         assert args.relations_sequence_clf_weight == 0.0
         assert args.eval_metric.startswith('tags_sequence') or \
             args.eval_metric.startswith('sent_type')
@@ -519,7 +529,6 @@ def main(args):
                         eval_relations_sequence_labels_ids,
                         label2id, cur_train_mean_loss=cur_train_mean_loss
                     )
-                    model.train()
 
                     result['global_step'] = global_step
                     result['epoch'] = epoch
@@ -735,8 +744,10 @@ if __name__ == "__main__":
                         help="random seed for initialization")
     parser.add_argument('--gradient_accumulation_steps', type=int, default=4,
                         help="Number of updates steps to accumulate before performing a backward/update pass.")
-    parser.add_argument("--multi_task_tasks_1_and_2", action="store_true",
-                        help="multi-task training only on task 1 and 2")
+    parser.add_argument("--filter_task_3", action="store_true",
+                        help="exclude task 3 from training")
+    parser.add_argument("--filter_task_1", action="store_true",
+                        help="exclude task 3 from training")
 
     parser.add_argument("--subtokens_pooling_type", type=str, default="first",
                         help="pooling mode in bert-ner, one of avg or first")

@@ -360,7 +360,8 @@ def create_multitask_examples(
                     'source': source,
                     'start_char': start_char,
                     'end_char': end_char,
-                    'relation_id': relation_id
+                    'subj_id': relation_id,
+                    'sent_id': sent_id
                 }
                 examples.append(example)
 

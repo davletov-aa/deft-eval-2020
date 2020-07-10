@@ -312,7 +312,7 @@ class BertForMultitaskLearning(BertPreTrainedModel):
                 sub_tokens = tokenizer.tokenize(token)
                 num_sub_tokens = len(sub_tokens)
                 if sequence_mode == 'all':
-                    pass
+                    raise NotImplementedError
                 elif sequence_mode == 'not-all':
                     if i == example.sent_start:
                         update_example_data(

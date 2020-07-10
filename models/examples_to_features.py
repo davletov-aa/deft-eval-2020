@@ -52,17 +52,29 @@ class DataProcessor(object):
 
     def __init__(
         self,
+        filter_task_1: bool = False,
         filter_task_3: bool = False
     ):
+        self.filter_task_1 = filter_task_1
         self.filter_task_3 = filter_task_3
 
     def _read_json(self, input_file):
         with open(input_file, "r", encoding='utf-8') as reader:
             data = json.load(reader)
-            if self.filter_task_3:
-                data = [
-                    example for example in data if example['relation_id'] == 0
-                ]
+            for (prefix, do_filter) in [
+                ('sent', self.filter_task_1), ('subj', self.filter_task_3)
+            ]:
+                if do_filter:
+                    new_data = []
+                    for example in data:
+                        if example[f'{prefix}_id'] != 0:
+                            continue
+                        example[f'{prefix}_start'] = -1
+                        example[f'{prefix}_end'] = -1
+
+                        new_data.append(example)
+                    data = new_data
+
         return data
 
     def get_train_examples(self, data_dir):
