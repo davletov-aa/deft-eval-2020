@@ -272,7 +272,8 @@ class BertForMultitaskLearning(BertPreTrainedModel):
             relations_sequence_label=[], mask=[1], offset_step=0,
             token_valid_pos_id=[], orig_position=[]
         ):
-            nonlocal tokens, tags_sequence_labels
+            nonlocal tokens, tags_sequence_labels, relations_sequence_labels, \
+                attention_mask, offset, token_valid_pos_ids, orig_positions_map
             tokens += token
             tags_sequence_labels += tags_sequence_label
             relations_sequence_labels += relations_sequence_label
