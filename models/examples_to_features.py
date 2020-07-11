@@ -5,7 +5,7 @@ from transformers.configuration_roberta import RobertaConfig
 from transformers.tokenization_roberta import RobertaTokenizer
 from torch.utils.data import DataLoader, TensorDataset
 from .multitask_bert import BertForMultitaskLearning
-from .multitask_roberta import RobertaForMultitaskLearning
+# from .multitask_roberta import RobertaForMultitaskLearning
 import torch
 import os
 import json
