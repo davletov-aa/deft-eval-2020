@@ -18,14 +18,17 @@ abbrs = [
 ]
 
 
-def search(config_path: str, grid_path: str):
+def search(config_path: str, grid_path: str, device_id: str = ''):
 	config = json.load(open(config_path))
 	grid = json.load(open(grid_path))
 	device = config.pop('cuda_device')
+	if device_id:
+	   device = device_id
+
 	output_dir = config.pop('output_dir')
 
 	default_cmd = [
-		f'CUDA_VISIBLE_DEVICES={device} python run_defteval.py --do_train --do_validate'
+		f'CUDA_VISIBLE_DEVICES={device} python run_defteval.py'
 	]
 	for key, value in config.items():
 		if isinstance(value, bool):
@@ -73,9 +76,9 @@ def create(grid_path: str):
 	json.dump(grid, open(grid_path, 'w'), indent=2)
 
 
-def main(cmd: str, config_path: str, grid_path: str):
+def main(cmd: str, config_path: str, grid_path: str, device_id: str = ''):
 	if cmd == 'search':
-		search(config_path, grid_path)
+		search(config_path, grid_path, device_id)
 	else:
 		create(grid_path)
 
