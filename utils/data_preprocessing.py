@@ -511,4 +511,3 @@ def get_task_1_sentences_official_way(
                     ignore_index=True
                 )
     return sentences
-

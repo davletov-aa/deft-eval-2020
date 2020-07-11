@@ -35,8 +35,7 @@ def predict(
 				cmd = [x for x in default_cmd]
 				cmd += [f'--output_dir {model}', f'--test_file {test_file}']
 				cmd = ' '.join(cmd)
-				# os.system(cmd)
-				print(cmd)
+				os.system(cmd)
 	else:
 		print('cancelled')
 
