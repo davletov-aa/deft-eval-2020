@@ -1,8 +1,10 @@
-from transformers.modeling_bert import BertPreTrainedModel, BertModel
-from transformers.tokenization_bert import BertTokenizer
+from transformers.modeling_roberta import RobertaModel, RobertaConfig
+from transformers.modeling_bert import BertPreTrainedModel
+from transformers.tokenization_roberta import RobertaTokenizer
 from torch import nn
 from torch.nn import CrossEntropyLoss
 import torch
+from .multitask_bert import InputFeatures
 from itertools import groupby
 
 
@@ -12,31 +14,35 @@ SUBJECT_START = '⁄'
 SUBJECT_END = '⁄'
 
 
-class InputFeatures(object):
+class RobertaClassificationHead(nn.Module):
 
-    def __init__(
-            self, input_ids, input_mask, segment_ids,
-            sent_type_id, tags_sequence_ids, relations_sequence_ids,
-            orig_positions_map, token_valid_pos_ids=None
-        ):
-        self.input_ids = input_ids
-        self.input_mask = input_mask
-        self.segment_ids = segment_ids
-        self.sent_type_id = sent_type_id
-        self.tags_sequence_ids = tags_sequence_ids
-        self.relations_sequence_ids = relations_sequence_ids
-        self.orig_positions_map = orig_positions_map
-        self.token_valid_pos_ids = token_valid_pos_ids
+    def __init__(self, config, num_labels=2):
+        super().__init__()
+        self.dense = nn.Linear(config.hidden_size, config.hidden_size)
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.out_proj = nn.Linear(config.hidden_size, num_labels)
+
+    def forward(self, features, **kwargs):
+        x = features[:, 0, :]  # take <s> token (equiv. to [CLS])
+        x = self.dropout(x)
+        x = self.dense(x)
+        x = torch.tanh(x)
+        x = self.dropout(x)
+        x = self.out_proj(x)
+        return x
 
 
-class BertForMultitaskLearning(BertPreTrainedModel):
+class RobertaForMultitaskLearning(BertPreTrainedModel):
+
+    config_class = RobertaConfig
+    base_model_prefix = "roberta"
 
     def __init__(
             self,
-            config: BertTokenizer,
+            config: RobertaTokenizer,
+            num_sent_type_labels: int = 2,
             num_tags_sequence_labels: int,
             num_relations_sequence_labels: int,
-            num_sent_type_labels: int = 2,
             sent_type_clf_weight: float = 1.0,
             tags_sequence_clf_weight: float = 1.0,
             relations_sequence_clf_weight: float = 1.0,
@@ -52,11 +58,11 @@ class BertForMultitaskLearning(BertPreTrainedModel):
         self.num_tags_sequence_labels = num_tags_sequence_labels
         self.num_relations_sequence_labels = num_relations_sequence_labels
 
-        self.bert = BertModel(config)
+        self.roberta = RobertaModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
-        self.sent_type_classifier = nn.Linear(
-            config.hidden_size, self.num_sent_type_labels
+        self.sent_type_classifier = RobertaClassificationHead(
+            config, num_labels=self.num_sent_type_labels
         )
         self.tags_sequence_classifier = nn.Linear(
             config.hidden_size, self.num_tags_sequence_labels
@@ -109,7 +115,7 @@ class BertForMultitaskLearning(BertPreTrainedModel):
         """
 
         loss = {}
-        outputs = self.bert(
+        outputs = self.roberta(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
@@ -118,15 +124,15 @@ class BertForMultitaskLearning(BertPreTrainedModel):
             inputs_embeds=inputs_embeds,
         )
 
-        sequence_output, pooled_output = outputs[0], outputs[1]
+        sequence_output = outputs[0]
+
+        sent_type_logits = self.sent_type_classifier(sequence_output)
 
         valid_sequence_output = self.pool_sequence_outputs(
             sequence_output, token_valid_pos_ids, device=device
         )
         valid_sequence_output = self.dropout(valid_sequence_output)
-        pooled_output = self.dropout(pooled_output)
 
-        sent_type_logits = self.sent_type_classifier(pooled_output)
         tags_sequence_logits = \
             self.tags_sequence_classifier(valid_sequence_output)
         relations_sequence_logits = \
@@ -262,9 +268,9 @@ class BertForMultitaskLearning(BertPreTrainedModel):
         features = []
         neg_tags_sequence_label = 'O'
         neg_relations_sequence_label = '0'
-        pad_token = "[PAD]"
-        sep_token = "[SEP]"
-        cls_token = "[CLS]"
+        pad_token = "<pad>"
+        sep_token = "</s>"
+        cls_token = "<s>"
 
 
         def update_example_data(

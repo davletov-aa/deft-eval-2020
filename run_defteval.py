@@ -247,7 +247,7 @@ def main(args):
 
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
-    else:
+    elif args.do_train or args.do_validate:
         raise ValueError(args.output_dir, 'output_dir already exists')
 
     suffix = datetime.now().isoformat().replace('-', '_').replace(
