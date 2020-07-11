@@ -662,7 +662,7 @@ def main(args):
                 id2label['sent_type'][x] for x in preds['sent_type']
             ],
             'sent_type_scores': [
-                str(score) for score in scores['sent_type_scores']
+                str(score) for score in scores['sent_type']
             ],
             'tags_sequence_labels': [
                 ' '.join(ex.tags_sequence) for ex in eval_examples
