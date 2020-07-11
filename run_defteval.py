@@ -273,12 +273,12 @@ def main(args):
         filter_task_3=args.filter_task_3
     )
 
-    if args.filter_task_1:
+    if args.filter_task_1 and args.do_train:
         assert args.sent_type_clf_weight == 0.0
         assert args.eval_metric.startswith('tags_sequence') or \
             args.eval_metric.startswith('relations_sequence')
 
-    if args.filter_task_3:
+    if args.filter_task_3 and args.do_train:
         assert args.relations_sequence_clf_weight == 0.0
         assert args.eval_metric.startswith('tags_sequence') or \
             args.eval_metric.startswith('sent_type')
@@ -594,7 +594,8 @@ def main(args):
                                     )
     if args.do_eval:
         test_file = os.path.join(
-            args.data_dir, 'test.json') if args.test_file == '' else args.test_file
+            args.data_dir, 'test.json'
+        ) if args.test_file == '' else args.test_file
         eval_examples = processor.get_test_examples(test_file)
 
         eval_features = model.convert_examples_to_features(
@@ -654,39 +655,53 @@ def main(args):
             'tokens': [
                  ' '.join(ex.tokens) for ex in eval_examples
             ],
-            'sequence_labels': [
-                ' '.join(ex.sequence_labels) for ex in eval_examples
+            'sent_type_label': [
+                ex.sent_type for ex in eval_examples
             ],
-            'text_label': [
-                ex.text_label for ex in eval_examples
+            'sent_type_pred': [
+                id2label['sent_type'][x] for x in preds['sent_type']
             ],
-            'text_pred': [
-                id2label['text'][x] for x in preds['text']
+            'sent_type_scores': [
+                str(score) for score in scores['sent_type_scores']
             ],
-            'sequence_pred': [
-                ' '.join([id2label['sequence'][x] if x != 0 else '0' for x in sent])
-                for sent in aggregated_results['sequence']
+            'tags_sequence_labels': [
+                ' '.join(ex.tags_sequence) for ex in eval_examples
             ],
-            'sequence_scores': [
+            'tags_sequence_pred': [
+                ' '.join([id2label['tags_sequence'][x] if x != 0 else 'O' for x in sent])
+                for sent in aggregated_results['tags_sequence']
+            ],
+            'tags_sequence_scores': [
                 ' '.join([str(score) for score in sent])
-                for sent in aggregated_results['sequence_scores']
+                for sent in aggregated_results['tags_sequence_scores']
             ],
-            'task_id': [
-                ex.task_id for ex in eval_examples
+            'relations_sequence_labels': [
+                ' '.join(ex.relations_sequence) for ex in eval_examples
             ],
-            'text': [
-                ex.text for ex in eval_examples
+            'relations_sequence_pred': [
+                ' '.join([id2label['relations_sequence'][x] if x != 0 else '0' for x in sent])
+                for sent in aggregated_results['relations_sequence']
+            ],
+            'relations_sequence_scores': [
+                ' '.join([str(score) for score in sent])
+                for sent in aggregated_results['relations_sequence_scores']
             ]
         }
 
         prediction_results = pd.DataFrame(prediction_results)
+        test_file = test_file.split('/')[-1].replace('.json', '')
         prediction_results.to_csv(
-            os.path.join(args.output_dir, f"{args.test_file.split('/')[-1]}_predictions.tsv"),
+            os.path.join(
+                args.output_dir,
+                f"{test_file}.tsv"),
             sep='\t', index=False
         )
-        with open(os.path.join(
-                args.output_dir, f"{args.test_file.split('/')[-1]}_eval_results.txt"), "w") as f:
-
+        with open(
+            os.path.join(
+                args.output_dir,
+                f"{test_file}_eval_results.txt"
+            ), "w"
+        ) as f:
             for key in sorted(result.keys()):
                 f.write("%s = %s\n" % (key, str(result[key])))
 
