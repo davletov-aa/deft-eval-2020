@@ -14,10 +14,10 @@ python prepare_dataset.py --deft_corpus_repo path_to_deft_corpus_repo
 
 To construct hyperparams grid run:
 ```bash
-python grid_search create train_config.json hyperparams.json
+python grid_search.py create train_config.json hyperparams.json
 ```
 
 To run grid search run:
 ```bash
-python grid_search search train_config.json hyperparams.json --device_id gpu_id
+python grid_search.py search train_config.json hyperparams.json --device_id gpu_id
 ```
