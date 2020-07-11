@@ -9,7 +9,7 @@ To prepare dataset:
 
 ```bash
 git clone https://github.com/adobe-research/deft_corpus.git
-python prepare_dataset.py --data_dir path_to_data_from_deft_corpus_repo
+python prepare_dataset.py --deft_corpus_repo path_to_deft_corpus_repo
 ```
 
 To construct hyperparams grid run:
