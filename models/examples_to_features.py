@@ -214,8 +214,7 @@ tokenizers = {
 }
 
 models = {
-    "bert-large-uncased": BertForMultitaskLearning,
-    "roberta-large": RobertaForMultitaskLearning
+    "bert-large-uncased": BertForMultitaskLearning
 }
 
 configs = {
