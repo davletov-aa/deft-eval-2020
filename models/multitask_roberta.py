@@ -40,7 +40,7 @@ class RobertaForMultitaskLearning(BertPreTrainedModel):
     def __init__(
             self,
             config: RobertaTokenizer,
-            num_sent_type_labels: int = 2,
+            num_sent_type_labels: int,
             num_tags_sequence_labels: int,
             num_relations_sequence_labels: int,
             sent_type_clf_weight: float = 1.0,
