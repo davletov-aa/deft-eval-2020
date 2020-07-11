@@ -346,7 +346,7 @@ def create_multitask_examples(
             sent_type_label = row.sent_type_labels[sent_id]
             for relation_id, ((subj_start, subj_end), relation) in enumerate(zip(row.roots, row.relations)):
                 example = {
-                    'idx': f'{row_id}-{sent_id}-{subj_id}-{subj_start}+{subj_end}',
+                    'idx': f'{row_id}-{sent_id}-{relation_id}-{subj_start}+{subj_end}',
                     'tokens': token,
                     'sent_start': sent_start,
                     'sent_end': sent_end,
