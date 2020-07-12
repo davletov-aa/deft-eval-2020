@@ -2,7 +2,7 @@
 	"cuda_device": 0,
 	"model": "bert-large-uncased",
 	"data_dir": "data",
-	"output_dir": "bert_sent_type_models/first_slen_256_eval_perep_4_linear/",
+	"output_dir": "bert_sent_type_tags_sequence_models/first_slen_256_eval_perep_4_linear/",
 	"eval_per_epoch": 4,
 	"max_seq_length": 256,
 	"do_train": true,
