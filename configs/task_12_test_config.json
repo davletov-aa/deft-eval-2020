@@ -1,0 +1,13 @@
+{
+	"model": "bert-large-uncased",
+	"data_dir": "data",
+	"max_seq_length": 256,
+	"eval_batch_size": 8,
+	"filter_task_1": false,
+	"filter_task_3": true,
+	"subtokens_pooling_type": "first",
+	"sequence_mode": "not-all",
+	"no_cuda": true,
+	"seed": 42,
+	"do_eval": true
+}
