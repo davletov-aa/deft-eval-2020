@@ -118,7 +118,7 @@ def read_part(
     if task_id == 2:
         columns = [x for x in part.keys()]
         task_2_columns = [
-            'token', 'source', 'start_char',
+            'tokens', 'source', 'start_char',
             'end_char', 'tag', 'infile_offsets',
             'part'
         ]
@@ -132,12 +132,12 @@ def read_part(
         dataset = task_2_to_task_3(dataset)
 
     if task_id == 1:
-        dataset.loc[:, 'orig_sent'] = dataset.token.copy().apply(lambda x: ' '.join(x))
-        dataset.loc[:, 'token'] = dataset.token.apply(lambda x: ' '.join(x).strip()).apply(lambda x: x.split(' '))
+        dataset.loc[:, 'orig_sent'] = dataset.tokens.copy().apply(lambda x: ' '.join(x))
+        dataset.loc[:, 'tokens'] = dataset.tokens.apply(lambda x: ' '.join(x).strip()).apply(lambda x: x.split(' '))
 
     if task_id == 3 and check_if_correct:
         dataset.loc[:, 'is_correct'] = dataset.apply(lambda r: is_correct(r.root_id, r.tag_id), axis=1)
-        print(f'{len(dataset) - sum(dataset.is_correct.values)} non correct examples detected!')
+        print(f'{len(dataset) - sum(dataset.is_correct.values)} non correct examples detected in {data_part_dir}!')
     return dataset
 
 
@@ -145,9 +145,9 @@ def task_2_to_task_3(
     task_2_dataset: pd.DataFrame
 ):
     new_df = task_2_dataset.copy()
-    new_df.loc[:, 'tag_id'] = new_df.token.apply(lambda x: ['-1'] * len(x))
-    new_df.loc[:, 'root_id'] = new_df.token.apply(lambda x: ['-1'] * len(x))
-    new_df.loc[:, 'relation'] = new_df.token.apply(lambda x: ['0'] * len(x))
+    new_df.loc[:, 'tag_id'] = new_df.tokens.apply(lambda x: ['-1'] * len(x))
+    new_df.loc[:, 'root_id'] = new_df.tokens.apply(lambda x: ['-1'] * len(x))
+    new_df.loc[:, 'relation'] = new_df.tokens.apply(lambda x: ['0'] * len(x))
 
     return new_df
 
@@ -174,7 +174,7 @@ def read_task_1(
             X.extend([ex.strip('"').split(' ') for ex in sents])
 
         source.extend([str(file)] * len(file_lines))
-    result = {'token': X, 'label': y, 'source': source}
+    result = {'tokens': X, 'label': y, 'source': source}
     return result
 
 def read_task_2_or_3(
@@ -182,7 +182,7 @@ def read_task_2_or_3(
     sep: str = '\t',
     columns: str = '+'.join(
         [
-            'token', 'source', 'start_char',
+            'tokens', 'source', 'start_char',
             'end_char', 'tag', 'tag_id',
             'root_id', 'relation'
         ]
@@ -215,8 +215,8 @@ def read_task_2_or_3(
     all_sentences = \
     [
         [
-            [column.strip() for column in token.split(sep)] + [infile_offset]
-            for token, infile_offset in zip(sentence, infile_offsets)
+            [column.strip() for column in tokens.split(sep)] + [infile_offset]
+            for tokens, infile_offset in zip(sentence, infile_offsets)
         ]
         for file_sentences in sentences.values()
         for (sentence, infile_offsets) in file_sentences
@@ -249,9 +249,9 @@ def read_task_2_or_3(
 
     for window_sentence in window_sentences:
         sentence = defaultdict(list)
-        for token in window_sentence:
+        for fields in window_sentence:
             for i, column_name in enumerate(columns):
-                column_value = token[i]
+                column_value = fields[i]
                 if task_id == 3 and column_name == 'relation':
                     column_value = filter_value(
                         column_value, EVAL_RELATIONS, '0'
@@ -262,8 +262,8 @@ def read_task_2_or_3(
                         column_value, EVAL_TAGS, 'O'
                     )
 
-                sentence[column_name].append(token[i])
-            sentence['infile_offsets'].append(token[-1])
+                sentence[column_name].append(fields[i])
+            sentence['infile_offsets'].append(fields[-1])
 
         for column_name in sentence:
             result[column_name].append(sentence[column_name])
@@ -334,7 +334,7 @@ def create_multitask_examples(
 
     examples = []
     for row_id, row in enumerate(df.itertuples()):
-        token = row.token
+        tokens = row.tokens
         tag = row.tag
         tag_id = row.tag_id
         infile_offsets = row.infile_offsets
@@ -347,15 +347,15 @@ def create_multitask_examples(
             for relation_id, ((subj_start, subj_end), relation) in enumerate(zip(row.roots, row.relations)):
                 example = {
                     'idx': f'{row_id}-{sent_id}-{relation_id}-{subj_start}+{subj_end}',
-                    'tokens': token,
+                    'tokens': tokens,
                     'sent_start': sent_start,
                     'sent_end': sent_end,
                     'sent_type': sent_type_label,
-                    'tags_sequence': tag[:len(token)],
+                    'tags_sequence': tag[:len(tokens)],
                     'subj_start': subj_start,
                     'subj_end': subj_end,
                     'relations_sequence': relation,
-                    'tags_ids': tag_id[:len(token)],
+                    'tags_ids': tag_id[:len(tokens)],
                     'infile_offsets': infile_offsets,
                     'source': source,
                     'start_char': start_char,
@@ -376,14 +376,14 @@ def get_sent_starts_sent_ends_and_sent_types(task_1_dataset, task_3_dataset):
         sent_starts, sent_ends, sent_types, sent_ids = [], [], [], []
         source = 'task_1_' + row.source[0].split('/')[-1]
         single_sentences = [
-            sent for sent in task_1_dataset[task_1_dataset.source == source].token
+            sent for sent in task_1_dataset[task_1_dataset.source == source].tokens
         ]
         single_sentences_types = [
                 sent_type for sent_type
                 in task_1_dataset[task_1_dataset.source == source].label
         ]
         single_sentence_ids = [idx for idx in task_1_dataset[task_1_dataset.source == source].idx.values]
-        window_sentence = row.token
+        window_sentence = row.tokens
 
         for sent_id, single_sentence in enumerate(single_sentences):
             for single_sentence_start in range(len(window_sentence) - len(single_sentence) + 1):
@@ -469,7 +469,7 @@ def get_roots_and_relations(task_3_dataset):
 def get_task_1_sentences_official_way(
     source_dir: str
 ):
-    sentences = pd.DataFrame(columns=['token', 'label', 'infile_offsets', 'source', 'idx'])
+    sentences = pd.DataFrame(columns=['tokens', 'label', 'infile_offsets', 'source', 'idx'])
     source_files = [file for file in os.listdir(source_dir) if file.endswith('.deft')]
 
     for source_file in tqdm(
@@ -494,7 +494,7 @@ def get_task_1_sentences_official_way(
                     ):
                     num_sents += 1
                     sentences = sentences.append({
-                        'token': new_sentence.lstrip().split(' '), 'label': has_def,
+                        'tokens': new_sentence.lstrip().split(' '), 'label': has_def,
                         'infile_offsets': infile_offsets,
                         'idx': num_sents,
                         "source": f"task_1_{source_file[7:]}"}, ignore_index=True)
@@ -516,7 +516,7 @@ def get_task_1_sentences_official_way(
                 num_sents += 1
                 sentences = sentences.append(
                     {
-                        'token': new_sentence.lstrip().split(' '), 'label': has_def,
+                        'tokens': new_sentence.lstrip().split(' '), 'label': has_def,
                         'infile_offsets': infile_offsets,
                         'idx': num_sents,
                         "source": f"task_1_{source_file[7:]}"
@@ -537,7 +537,7 @@ def write_task_2_predictions(
 
     for column in [
         'tags_sequence_labels', 'tags_sequence_pred',
-        'infile_offsets', 'token'
+        'infile_offsets', 'tokens'
     ]:
         predictions.loc[:, column] = predictions[column].str.split(' ')
 
