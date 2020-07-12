@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import re
-from collections import defaultdict
+from collections import defaultdict, Counter
 from itertools import groupby
 from tqdm import tqdm
 import json
@@ -403,6 +403,10 @@ def get_sent_starts_sent_ends_and_sent_types(task_1_dataset, task_3_dataset):
 
 
 def get_roots_and_relations(task_3_dataset):
+
+    # TODO: return subj_start == -1, subj_end == -1 and
+    # set(relation) == {'0'} for examples without entities
+
     assert hasattr(task_3_dataset, 'tag'), "dataset must have \"tag\" column"
 
     def get_relations_for_subjects(subjects, tag_ids, root_ids, relations):
@@ -422,6 +426,7 @@ def get_roots_and_relations(task_3_dataset):
     is_test_dataset = not hasattr(task_3_dataset, 'relation')
 
     for row in task_3_dataset.itertuples():
+        tokens = row.tokens
         tags = row.tag
         tag_starts = [i for i, tag in enumerate(tags) if tag.startswith('B-')]
         additional_starts = []
@@ -444,15 +449,19 @@ def get_roots_and_relations(task_3_dataset):
         if is_test_dataset:
             relations = []
             for _ in subjects:
-                relations.append(['0'] * len(tags))
+                relations.append(['0'] * len(tokens))
         else:
             relations = get_relations_for_subjects(
                 subjects=subjects, tag_ids=row.tag_id,
                 root_ids=row.root_id, relations=row.relation
             )
 
-        total_subjects.append(subjects)
-        total_relations.append(relations)
+        if subjects:
+            total_subjects.append(subjects)
+            total_relations.append(relations)
+        else:
+            total_subjects.append([(-1, -1)])
+            total_relations.append([['0'] * len(tokens)])
 
     return total_subjects, total_relations
 
@@ -463,7 +472,11 @@ def get_task_1_sentences_official_way(
     sentences = pd.DataFrame(columns=['token', 'label', 'infile_offsets', 'source', 'idx'])
     source_files = [file for file in os.listdir(source_dir) if file.endswith('.deft')]
 
-    for source_file in source_files:
+    for source_file in tqdm(
+        source_files,
+        total=len(source_files),
+        desc='extracting task 1 files ...'
+    ):
         infile_offsets = []
         num_sents = 0
         with open(os.path.join(source_dir, source_file)) as source_text:
@@ -511,3 +524,95 @@ def get_task_1_sentences_official_way(
                     ignore_index=True
                 )
     return sentences
+
+
+############################# postprocessing ##################################
+
+def write_task_2_predictions(
+    task_2_dataset,
+    predictions_path: str,
+    output_dir: str
+):
+    predictions = pd.read_csv(predictions_path, sep='\t')
+
+    for column in [
+        'tags_sequence_labels', 'tags_sequence_pred',
+        'infile_offsets', 'token'
+    ]:
+        predictions.loc[:, column] = predictions[column].str.split(' ')
+
+    dataset = read_part(
+        data_part_dir=task_2_dataset,
+        task_id=2,
+        sep='\t',
+        check_if_correct=True,
+        do_filter=False
+    ) if isinstance(task_2_dataset, str) else task_2_dataset.copy()
+
+    print(dataset.tokens.values[0], predictions.tokens.values[0])
+
+    num_of_matches = 0
+    preds = []
+    for row in dataset.itertuples():
+        window = row.tokens
+        matched_predictions = []
+        for prow in predictions.itertuples():
+            if window == prow.tokens:
+                matched_predictions.append(
+                    list(prow.tags_sequence_pred) + \
+                    ['O'] * (len(window) - len(prow.tags_sequence_pred))
+                )
+
+        if len(matched_predictions) > 0:
+            num_of_matches += 1
+            best_pred = get_best_from_each_column(matched_predictions)
+        else:
+            best_pred = ['O'] * len(window)
+
+        preds.append(best_pred)
+
+    print('percentage of matches:', num_of_matches / len(dataset) * 100)
+
+    dataset.loc[:, 'tags_sequence_pred'] = preds
+    if os.path.exists(output_dir):
+        assert ValueError(f'output_dir')
+    else:
+        os.makedirs(output_dir, exist_ok=True)
+
+    dataset.loc[:, 'source_files'] = dataset.source.apply(
+        lambda x: 'task_2_' + x[0].split('/')[-1]
+    )
+
+    unique_sources = dataset.source_files.unique()
+
+    print(len(unique_sources), 'unique sources')
+
+    for source in unique_sources:
+        source_df = dataset[dataset.source_files == source]
+        i = 0
+        with open(os.path.join(output_dir, source), 'w') as f:
+            for row in source_df.itertuples():
+                for tok, start, end, tag, offset, source_to_write in zip(
+                    row.tokens,
+                    row.start_char,
+                    row.end_char,
+                    row.tags_sequence_pred,
+                    row.infile_offsets,
+                    row.source
+                ):
+                    while i < offset:
+                        print('', file=f)
+                        i += 1
+                    print(f"{tok}\t{source_to_write}\t{start}\t{end}\t{tag if tag in EVAL_TAGS else 'O'}", file=f)
+                    i += 1
+
+            print('', file=f)
+            print('', file=f)
+
+
+def get_best_from_each_column(two_dim_array):
+    array = np.array([x for x in two_dim_array]).T
+    best = [
+        Counter(x).most_common()[0][0] for x in array
+    ]
+    return best
