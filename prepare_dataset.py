@@ -19,5 +19,6 @@ def prepare_dataset(deft_corpus_repo: str = 'deft_corpus'):
 	)
 	print('the dataset has been written to data folder')
 
+
 if __name__ == '__main__':
 	fire.Fire(prepare_dataset)
