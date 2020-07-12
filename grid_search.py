@@ -52,6 +52,17 @@ def search(config_path: str, grid_path: str, device_id: str = ''):
 		for (param, value) in cur_params:
 			cur_params_dict[param] = value
 			cmd.append(f'--{param} {value}')
+
+		if all([
+			float(cur_params_dict[param]) == 0.0 for param in [
+				'sent_type_clf_weight',
+				'tags_sequence_clf_weight',
+				'relations_sequence_clf_weight'
+			]
+		]):
+			print('\nskipping point with all tasks weights set to 0 ...\n')
+			continue
+
 		model_dir = "-".join([f'{n}-{cur_params_dict[x]}' for x, n in zip(hyperparams, abbrs)])
 		cmd.append(f'--output_dir {os.path.join(output_dir, model_dir)}')
 		cmd = ' '.join(cmd)
