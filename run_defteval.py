@@ -664,6 +664,12 @@ def main(args):
             'sent_type_scores': [
                 str(score) for score in scores['sent_type']
             ],
+            'sent_start': [
+                ex.sent_start for ex in eval_examples
+            ],
+            'sent_end': [
+                ex.sent_end for ex in eval_examples
+            ],
             'tags_sequence_labels': [
                 ' '.join(ex.tags_sequence) for ex in eval_examples
             ],
@@ -675,6 +681,9 @@ def main(args):
                 ' '.join([str(score) for score in sent])
                 for sent in aggregated_results['tags_sequence_scores']
             ],
+            'tags_ids': [
+                ' '.join(ex.tags_ids) for ex in eval_examples
+            ],
             'relations_sequence_labels': [
                 ' '.join(ex.relations_sequence) for ex in eval_examples
             ],
@@ -685,6 +694,26 @@ def main(args):
             'relations_sequence_scores': [
                 ' '.join([str(score) for score in sent])
                 for sent in aggregated_results['relations_sequence_scores']
+            ],
+            'subj_start': [
+                ex.subj_start for ex in eval_examples
+            ],
+            'subj_end': [
+                ex.subj_end for ex in eval_examples
+            ],
+            'infile_offsets': [
+                ' '.join([
+                    str(offset) for offset in ex.infile_offsets
+                ]) for ex in eval_examples
+            ],
+            'start_char': [
+                ' '.join(ex.start_char) for ex in eval_examples
+            ],
+            'end_char': [
+                ' '.join(ex.end_char) for ex in eval_examples
+            ],
+            'source': [
+                ex.source for ex in eval_examples
             ]
         }
 
