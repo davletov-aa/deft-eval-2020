@@ -5,6 +5,7 @@ from collections import defaultdict, Counter
 from itertools import groupby
 from tqdm import tqdm
 import json
+import numpy as np
 
 
 EVAL_RELATIONS = [
