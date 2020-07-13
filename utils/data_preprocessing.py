@@ -112,6 +112,7 @@ def read_part(
         2: read_task_2_or_3,
         3: read_task_2_or_3
     }
+
     part = reader[task_id](
         data_dir=data_part_dir, sep=sep, do_filter=do_filter, task_id=task_id
     )
@@ -528,6 +529,55 @@ def get_task_1_sentences_official_way(
 
 
 ############################# postprocessing ##################################
+
+def write_task_1_predictions(
+    task_2_path_or_task_1,
+    predictions_path: str,
+    output_dir: str
+):
+
+    predictions = pd.read_csv(predictions_path, sep='\t')
+
+    task_1_dataset = \
+        get_task_1_sentences_official_way(
+            task_2_path_or_task_1
+        ) if isinstance(task_2_path_or_task_1, str) else \
+        task_2_path_or_task_1.copy()
+
+    sent_type_preds = []
+    for row in task_1_dataset.itertuples():
+        tokens = row.tokens
+        matched_sentences_preds = []
+        for prow in predictions.itertuples():
+            window = prow.tokens
+            sent_start = prow.sent_start
+            sent_end = prow.sent_end + 1
+            if window[sent_start:sent_end] == tokens:
+                matched_sentences_preds.append(prow.sent_type_pred)
+        if len(matched_sentences_preds):
+            sent_type_preds.append(
+                Counter(matched_sentences_preds).most_common()[0][0]
+            )
+        else:
+            sent_type_preds.append('0')
+
+    task_1_dataset.loc[:, 'sent_type_pred'] = sent_type_preds
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    task_1_dataset['tokens'] = task_1_dataset.tokens.apply(
+        lambda x: ' '.join(x)
+    )
+    sent_type_preds = task_1_dataset.sent_type_preds.values
+    for file in task_1_dataset.source.unique():
+        df = task_1_dataset[task_1_dataset.source == file]
+        file_preds = [sent_type_preds[i] for i in df.index.values]
+
+        with open(os.path.join(output_dir, file), 'w') as fp:
+            for sent, pred in zip(df.tokens.values, file_preds):
+                print(f' {sent}\t{pred}', file=fp)
+
 
 def write_task_2_predictions(
     task_2_dataset,
