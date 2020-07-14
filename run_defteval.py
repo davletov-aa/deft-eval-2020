@@ -497,7 +497,8 @@ def main(args):
                     tags_sequence_labels=tags_sequence_labels_ids,
                     relations_sequence_labels=relations_sequence_labels_ids,
                     token_valid_pos_ids=token_valid_pos_ids,
-                    return_outputs=False
+                    return_outputs=False,
+                    device=device
                 )
                 for key in train_loss:
                     cur_train_loss[key] += train_loss[key].mean().item()
