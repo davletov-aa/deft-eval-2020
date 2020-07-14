@@ -162,13 +162,13 @@ def evaluate(
             relations_sequence_logits = outputs[:3]
 
         if compute_metrics:
-            eval_loss['dev_sent_type_loss'] += \
+            eval_loss['sent_type_loss'] += \
                 loss['sent_type_loss'].mean().item()
-            eval_loss['dev_tags_sequence_loss'] += \
+            eval_loss['tags_sequence_loss'] += \
                 loss['tags_sequence_loss'].mean().item()
-            eval_loss['dev_relations_sequence_loss'] += \
+            eval_loss['relations_sequence_loss'] += \
                 loss['relations_sequence_loss'].mean().item()
-            eval_loss['dev_weighted_loss'] += \
+            eval_loss['weighted_loss'] += \
                 loss['weighted_loss'].mean().item()
 
         nb_eval_steps += 1
@@ -213,7 +213,7 @@ def evaluate(
         result = {}
 
     for key in eval_loss:
-        result[f'eval_loss_{key}'] = eval_loss[key]
+        result[key] = eval_loss[key]
     if verbose:
         logger.info("***** Eval results *****")
         for key in sorted(result.keys()):
@@ -540,7 +540,7 @@ def main(args):
                     save_model = False
                     cur_train_mean_loss = {}
                     for key in cur_train_loss:
-                        cur_train_mean_loss[key] = \
+                        cur_train_mean_loss[f'train_{key}'] = \
                             cur_train_loss[key] / nb_tr_steps
 
                     preds, result, scores = evaluate(
