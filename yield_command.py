@@ -91,7 +91,7 @@ def search(itertation_id: int, config_path: str, grid_path: str, device_id: str 
 		if iteration == itertation_id:
 			return cmd
 
-	return 'sleep+2h;'
+	return 'sleep+2m;'
 
 if __name__ == '__main__':
     fire.Fire(search)

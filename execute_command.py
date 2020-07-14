@@ -4,8 +4,7 @@ import os
 
 def execute(command):
 	command = command.replace('+', ' ')
-	# os.system(command)
-	print(command)
+	os.system(command)
 
 
 if __name__ == '__main__':
