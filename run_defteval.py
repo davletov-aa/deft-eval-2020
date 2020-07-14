@@ -51,7 +51,7 @@ def compute_all_metrics(
     sent_type_labels, sent_type_preds,
     tags_sequence_labels, tags_sequence_preds,
     relations_sequence_labels, relations_sequence_preds,
-    label2id, loss_info=None, log_metrics=True
+    label2id, loss_info=None, logger=None
 ):
     eval_tags_sequence_labels = [
         (label2id['tags_sequence'][lab]) for lab in EVAL_TAGS
@@ -97,14 +97,14 @@ def compute_all_metrics(
         for metrics in ['precision', 'recall', 'f1-score', 'support']:
             result[f"relations_sequence_{id2label[x]}_{metrics}"] = \
                 round(task_3_report[str(x)][metrics], 6)
-    if log_metrics:
-        eval_logger.info("=====================================")
+    if logger is not None:
+        logger.info("=====================================")
         for key in sorted(result.keys()):
-            eval_logger.info("  %s = %s", key, str(result[key]))
+            logger.info("  %s = %s", key, str(result[key]))
 
         if loss_info is not None:
             for key in sorted(loss_info.keys()):
-                eval_logger.info(
+                logger.info(
                     "  %s = %s", key, str(loss_info[key])
                 )
 
@@ -117,7 +117,9 @@ def evaluate(
         eval_tags_sequence_labels_ids,
         eval_relations_sequence_labels_ids,
         label2id,
-        compute_metrics=True, verbose=True, cur_train_mean_loss=None
+        compute_metrics=True,
+        verbose=True, cur_train_mean_loss=None,
+        logger=None
     ):
     model.eval()
 
@@ -204,7 +206,8 @@ def evaluate(
             np.array([x for y in preds['tags_sequence'] for x in y]),
             np.array([x for y in eval_relations_sequence_labels_ids.numpy() for x in y]),
             np.array([x for y in preds['relations_sequence'] for x in y]),
-            label2id, loss_info=eval_loss
+            label2id, loss_info=eval_loss,
+            logger=logger
         )
     else:
         result = {}
@@ -539,16 +542,21 @@ def main(args):
                     for key in cur_train_loss:
                         cur_train_mean_loss[key] = \
                             cur_train_loss[key] / nb_tr_steps
+
                     preds, result, scores = evaluate(
                         model, device, eval_dataloader,
                         eval_sent_type_labels_ids,
                         eval_tags_sequence_labels_ids,
                         eval_relations_sequence_labels_ids,
-                        label2id, loss_info=None
+                        label2id, cur_train_mean_loss=cur_train_mean_loss,
+                        logger=eval_logger
                     )
 
                     result['global_step'] = global_step
                     result['epoch'] = epoch
+                    result['learning_rate'] = lr
+                    result['batch_size'] = \
+                    args.train_batch_size * args.gradient_accumulation_steps
 
                     for key, value in result.items():
                         dev_writer.add_scalar(key, value, global_step)
@@ -556,9 +564,6 @@ def main(args):
                         train_writer.add_scalar(
                             f'running_train_{key}', value, global_step
                         )
-
-                    result['learning_rate'] = lr
-                    result['batch_size'] = args.train_batch_size
 
                     logger.info("First 20 predictions:")
                     for sent_type_pred, sent_type_label in zip(
@@ -622,10 +627,13 @@ def main(args):
                     sent_type_ids,
                     tags_sequence_ids,
                     relations_sequence_ids,
-                    label2id, log_metrics=False
+                    label2id, logger=logger
                 )
                 result['global_step'] = global_step
                 result['epoch'] = epoch
+                result['learning_rate'] = lr
+                result['batch_size'] = \
+                    args.train_batch_size * args.gradient_accumulation_steps
 
                 for key, value in result.items():
                     train_writer.add_scalar(key, value, global_step)
