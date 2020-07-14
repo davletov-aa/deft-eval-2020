@@ -412,8 +412,8 @@ def main(args):
         eval_step = max(1, len(train_batches) // args.eval_per_epoch)
         lr = float(args.learning_rate)
 
-        if n_gpu > 1:
-            model = torch.nn.DataParallel(model)
+        # if n_gpu > 1:
+        #     model = torch.nn.DataParallel(model)
 
         param_optimizer = list(model.named_parameters())
         no_decay = ['bias', 'LayerNorm.weight']
