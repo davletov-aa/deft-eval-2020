@@ -1,9 +1,9 @@
 # deft-eval-2020
 To install dependencies:
 ```bash
-python3 -m venv venv
-. venv/bin/activate
-pip install -r requirements.txt
+conda create -n env_name -c conda-forge -c anaconda -c pytorch python=3.7 requests numpy=1.17.2 pandas=1.0.3 fire=0.2.1 pytorch=1.4.0 future==0.18.2 tensorboardx==2.1
+conda activate env_name
+pip install fire tqdm python-Levenshtein
 ```
 To prepare dataset:
 
