@@ -23,5 +23,6 @@
 	"no_cuda": false,
 	"seed": 42,
 	"do_eval": false,
-	"test_file": ""
+	"test_file": "",
+	"log_train_metrics": true
 }

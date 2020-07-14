@@ -3,3 +3,4 @@ fire==0.3.1
 scikit-learn==0.23.1
 transformers==2.11.0
 torch==1.2.0
+future==0.18.2

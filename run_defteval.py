@@ -36,6 +36,7 @@ from utils.data_preprocessing import (
     EVAL_TAGS, EVAL_RELATIONS
 )
 
+from torch.utils.tensorboard import SummaryWriter
 
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
@@ -50,7 +51,7 @@ def compute_all_metrics(
     sent_type_labels, sent_type_preds,
     tags_sequence_labels, tags_sequence_preds,
     relations_sequence_labels, relations_sequence_preds,
-    label2id, loss_info=None
+    label2id, loss_info=None, log_metrics=True
 ):
     eval_tags_sequence_labels = [
         (label2id['tags_sequence'][lab]) for lab in EVAL_TAGS
@@ -96,16 +97,16 @@ def compute_all_metrics(
         for metrics in ['precision', 'recall', 'f1-score', 'support']:
             result[f"relations_sequence_{id2label[x]}_{metrics}"] = \
                 round(task_3_report[str(x)][metrics], 6)
+    if log_metrics:
+        eval_logger.info("=====================================")
+        for key in sorted(result.keys()):
+            eval_logger.info("  %s = %s", key, str(result[key]))
 
-    eval_logger.info("=====================================")
-    for key in sorted(result.keys()):
-        eval_logger.info("  %s = %s", key, str(result[key]))
-
-    if loss_info is not None:
-        for key in sorted(loss_info.keys()):
-            eval_logger.info(
-                "  %s = %s", key, str(loss_info[key])
-            )
+        if loss_info is not None:
+            for key in sorted(loss_info.keys()):
+                eval_logger.info(
+                    "  %s = %s", key, str(loss_info[key])
+                )
 
     return result
 
@@ -195,7 +196,8 @@ def evaluate(
     if compute_metrics:
         for key in eval_loss:
             eval_loss[key] = eval_loss[key] / nb_eval_steps
-        eval_loss.update(cur_train_mean_loss)
+        if cur_train_mean_loss is not None:
+            eval_loss.update(cur_train_mean_loss)
         result = compute_all_metrics(
             eval_sent_type_labels_ids.numpy(), preds['sent_type'],
             np.array([x for y in eval_tags_sequence_labels_ids.numpy() for x in y]),
@@ -253,6 +255,17 @@ def main(args):
     suffix = datetime.now().isoformat().replace('-', '_').replace(
         ':', '_').split('.')[0].replace('T', '-')
     if args.do_train:
+
+        train_writer = SummaryWriter(
+            log_dir=os.path.join(
+                'tensorboard', args.output_dir, 'train'
+            )
+        )
+        dev_writer = SummaryWriter(
+            log_dir=os.path.join(
+                'tensorboard', args.output_dir, 'dev'
+            )
+        )
 
         logger.addHandler(logging.FileHandler(
             os.path.join(args.output_dir, f"train_{suffix}.log"), 'w')
@@ -393,7 +406,8 @@ def main(args):
         else:
             random.shuffle(train_features)
 
-        train_dataloader, _, _, _ = \
+        train_dataloader, sent_type_ids, tags_sequence_ids, \
+        relations_sequence_ids = \
             get_dataloader_and_tensors(train_features, args.train_batch_size)
         train_batches = [batch for batch in train_dataloader]
 
@@ -529,13 +543,22 @@ def main(args):
                         eval_sent_type_labels_ids,
                         eval_tags_sequence_labels_ids,
                         eval_relations_sequence_labels_ids,
-                        label2id, cur_train_mean_loss=cur_train_mean_loss
+                        label2id, loss_info=None
                     )
 
                     result['global_step'] = global_step
                     result['epoch'] = epoch
+
+                    for key, value in result.items():
+                        dev_writer.add_scalar(key, value, global_step)
+                    for key,value in cur_train_mean_loss.items():
+                        train_writer.add_scalar(
+                            f'running_train_{key}', value, global_step
+                        )
+
                     result['learning_rate'] = lr
                     result['batch_size'] = args.train_batch_size
+
                     logger.info("First 20 predictions:")
                     for sent_type_pred, sent_type_label in zip(
                             preds['sent_type'][:20],
@@ -592,6 +615,20 @@ def main(args):
                                     writer.write("%s = %s\n" % (
                                         key, str(result[key]))
                                     )
+            if args.log_train_metrics:
+                preds, result, scores = evaluate(
+                    model, device, train_dataloader,
+                    sent_type_ids,
+                    tags_sequence_ids,
+                    relations_sequence_ids,
+                    label2id, log_metrics=False
+                )
+                result['global_step'] = global_step
+                result['epoch'] = epoch
+
+                for key, value in result.items():
+                    train_writer.add_scalar(key, value, global_step)
+
     if args.do_eval:
         test_file = os.path.join(
             args.data_dir, 'test.json'
@@ -802,5 +839,7 @@ if __name__ == "__main__":
                         "all or not-all")
     parser.add_argument("--lr_schedule", type=str, default="linear_warmup",
                         help="lr adjustment schedule")
+    parser.add_argument("--log_train_metrics", action="store_true",
+                        help="compute metrics for train set too")
     arguments = parser.parse_args()
     main(arguments)
