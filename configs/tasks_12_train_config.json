@@ -10,7 +10,7 @@
 	"train_mode": "random_sorted",
 	"train_batch_size": 32,
 	"eval_batch_size": 8,
-	"eval_metric": "sent_type_1_f1-score",
+	"eval_metrics": false,
 	"num_train_epochs": 7,
 	"max_grad_norm": 1.0,
 	"warmup_proportion": 0.1,

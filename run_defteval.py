@@ -118,7 +118,7 @@ def evaluate(
         eval_relations_sequence_labels_ids,
         label2id,
         compute_metrics=True,
-        verbose=True, cur_train_mean_loss=None,
+        verbose=False, cur_train_mean_loss=None,
         logger=None
     ):
     model.eval()
@@ -138,7 +138,7 @@ def evaluate(
 
     for batch in tqdm(
             eval_dataloader, total=len(eval_dataloader),
-            desc='validation ...'
+            desc='validation ... '
         ):
         batch = tuple([elem.to(device) for elem in batch])
 
@@ -200,6 +200,7 @@ def evaluate(
             eval_loss[key] = eval_loss[key] / nb_eval_steps
         if cur_train_mean_loss is not None:
             eval_loss.update(cur_train_mean_loss)
+
         result = compute_all_metrics(
             eval_sent_type_labels_ids.numpy(), preds['sent_type'],
             np.array([x for y in eval_tags_sequence_labels_ids.numpy() for x in y]),
@@ -214,10 +215,6 @@ def evaluate(
 
     for key in eval_loss:
         result[key] = eval_loss[key]
-    if verbose:
-        logger.info("***** Eval results *****")
-        for key in sorted(result.keys()):
-            logger.info("  %s = %s", key, str(result[key]))
 
     model.train()
 
@@ -289,15 +286,31 @@ def main(args):
         filter_task_3=args.filter_task_3
     )
 
+    eval_metrics = {
+        eval_metric: True for eval_metric in args.eval_metrics.split('+')
+    }
+
     if args.filter_task_1 and args.do_train:
         assert args.sent_type_clf_weight == 0.0
-        assert args.eval_metric.startswith('tags_sequence') or \
-            args.eval_metric.startswith('relations_sequence')
+        eval_metrics.pop('sent_type_1_f1-score')
 
     if args.filter_task_3 and args.do_train:
         assert args.relations_sequence_clf_weight == 0.0
-        assert args.eval_metric.startswith('tags_sequence') or \
-            args.eval_metric.startswith('sent_type')
+        eval_metrics.pop('relations_sequence_macro-avg_f1-score')
+
+    if args.sent_type_clf_weight == 0.0 and \
+        'sent_type_1_f1-score' in eval_metrics:
+        eval_metrics.pop('sent_type_1_f1-score')
+
+    if args.tags_sequence_clf_weight == 0.0 and \
+        'tags_sequence_macro-avg_f1-score' in eval_metrics:
+        eval_metrics.pop('tags_sequence_macro-avg_f1-score')
+
+    if args.tags_sequence_clf_weight == 0.0 and \
+        'relations_sequence_macro-avg_f1-score' in eval_metrics:
+        eval_metrics.pop('relations_sequence_macro-avg_f1-score')
+
+    assert len(eval_metrics) > 0, "inconsistent train params"
 
     sent_type_labels_list = \
         processor.get_sent_type_labels(args.data_dir, logger)
@@ -395,6 +408,23 @@ def main(args):
     eval_tags_sequence_labels_ids, eval_relations_sequence_labels_ids = \
         get_dataloader_and_tensors(eval_features, args.eval_batch_size)
 
+    test_file = os.path.join(
+        args.data_dir, 'test.json'
+    ) if args.test_file == '' else args.test_file
+    test_examples = processor.get_test_examples(test_file)
+
+    test_features = model.convert_examples_to_features(
+        test_examples, label2id, args.max_seq_length,
+        tokenizer, logger, args.sequence_mode
+    )
+    logger.info("***** Test *****")
+    logger.info("  Num examples = %d", len(test_examples))
+    logger.info("  Batch size = %d", args.eval_batch_size)
+
+    test_dataloader, test_sent_type_labels_ids, \
+    test_tags_sequence_labels_ids, test_relations_sequence_labels_ids = \
+        get_dataloader_and_tensors(test_features, args.eval_batch_size)
+
     if args.do_train:
         train_examples = processor.get_train_examples(args.data_dir)
         train_features = model.convert_examples_to_features(
@@ -425,7 +455,7 @@ def main(args):
         logger.info("  Batch size = %d", args.train_batch_size)
         logger.info("  Num steps = %d", num_train_optimization_steps)
 
-        best_result = None
+        best_result = defaultdict(float)
         eval_step = max(1, len(train_batches) // args.eval_per_epoch)
         lr = float(args.learning_rate)
 
@@ -537,7 +567,7 @@ def main(args):
                             time.time() - start_time, tr_loss / nb_tr_steps
                         )
                     )
-                    save_model = False
+                    predict_for_metrics = []
                     cur_train_mean_loss = {}
                     for key in cur_train_loss:
                         cur_train_mean_loss[f'train_{key}'] = \
@@ -580,47 +610,42 @@ def main(args):
                             )
                         )
 
-                    if ((best_result is None) or
-                        (
-                            result[args.eval_metric] > best_result[
-                                args.eval_metric
-                            ]
-                        )):
-                        best_result = result
-                        save_model = True
-                        logger.info("!!! Best dev %s (lr=%s, epoch=%d): %.2f" %
-                            (
-                                args.eval_metric,
-                                str(lr), epoch,
-                                result[args.eval_metric] * 100.0
+                    for eval_metric in eval_metrics:
+                        if result[eval_metric] > best_result[eval_metric]:
+                            best_result[eval_metric] = result[eval_metric]
+                            logger.info("!!! Best dev %s (lr=%s, epoch=%d): %.2f" %
+                                (
+                                    eval_metric,
+                                    str(lr), epoch,
+                                    result[eval_metric] * 100.0
+                                )
                             )
+                            predict_for_metrics.append(eval_metric)
+
+                    for metric_id, eval_metric in tqdm(
+                        enumerate(predict_for_metrics), total=len(predict_for_metrics),
+                        desc='writing predictions ... '
+                    ):
+                        dest_file = f'dev_best_{eval_metric}'
+                        write_predictions(
+                            args, eval_examples, eval_features, preds,
+                            scores, dest_file, metrics=result
+                        )
+                        if metric_id == 0:
+                            test_preds, test_result, test_scores = evaluate(
+                                model, device, test_dataloader,
+                                test_sent_type_labels_ids,
+                                test_tags_sequence_labels_ids,
+                                test_relations_sequence_labels_ids,
+                                label2id, cur_train_mean_loss=None,
+                                logger=None
+                            )
+                        dest_file = f'test_best_{eval_metric}'
+                        write_predictions(
+                            args, test_examples, test_features, test_preds,
+                            test_scores, dest_file, metrics=test_result
                         )
 
-                    if save_model:
-                        model_to_save = \
-                            model.module if hasattr(model, 'module') else model
-                        output_model_file = os.path.join(
-                            args.output_dir, WEIGHTS_NAME
-                        )
-                        output_config_file = os.path.join(
-                            args.output_dir, CONFIG_NAME
-                        )
-                        torch.save(
-                            model_to_save.state_dict(), output_model_file
-                        )
-                        model_to_save.config.to_json_file(
-                            output_config_file
-                        )
-                        tokenizer.save_vocabulary(args.output_dir)
-                        if best_result:
-                            output_eval_file = os.path.join(
-                                args.output_dir, "eval_results.txt"
-                            )
-                            with open(output_eval_file, "w") as writer:
-                                for key in sorted(result.keys()):
-                                    writer.write("%s = %s\n" % (
-                                        key, str(result[key]))
-                                    )
             if args.log_train_metrics:
                 preds, result, scores = evaluate(
                     model, device, train_dataloader,
@@ -642,143 +667,155 @@ def main(args):
         test_file = os.path.join(
             args.data_dir, 'test.json'
         ) if args.test_file == '' else args.test_file
-        eval_examples = processor.get_test_examples(test_file)
+        test_examples = processor.get_test_examples(test_file)
 
-        eval_features = model.convert_examples_to_features(
-            eval_examples, label2id, args.max_seq_length,
+        test_features = model.convert_examples_to_features(
+            test_examples, label2id, args.max_seq_length,
             tokenizer, logger, args.sequence_mode
         )
         logger.info("***** Test *****")
-        logger.info("  Num examples = %d", len(eval_examples))
+        logger.info("  Num examples = %d", len(test_examples))
         logger.info("  Batch size = %d", args.eval_batch_size)
 
-        eval_dataloader, eval_sent_type_labels_ids, \
-        eval_tags_sequence_labels_ids, eval_relations_sequence_labels_ids = \
-            get_dataloader_and_tensors(eval_features, args.eval_batch_size)
+        test_dataloader, test_sent_type_labels_ids, \
+        test_tags_sequence_labels_ids, test_relations_sequence_labels_ids = \
+            get_dataloader_and_tensors(test_features, args.eval_batch_size)
 
         preds, result, scores = evaluate(
-            model, device, eval_dataloader,
-            eval_sent_type_labels_ids,
-            eval_tags_sequence_labels_ids,
-            eval_relations_sequence_labels_ids,
+            model, device, test_dataloader,
+            test_sent_type_labels_ids,
+            test_tags_sequence_labels_ids,
+            test_relations_sequence_labels_ids,
             label2id,
             compute_metrics=False
         )
-
-        aggregated_results = {}
-        eval_orig_positions_map = [ex.orig_positions_map for ex in eval_features]
-        neg_label_mapper = {
-            'tags_sequence': 'O',
-            'relations_sequence': '0'
-        }
-        for task in ['tags_sequence', 'relations_sequence']:
-            aggregated_results[task] = [
-                list(pred[orig_positions]) + \
-                [
-                    label2id[task][neg_label_mapper[task]]
-                ] * (len(ex.tokens) - len(orig_positions))
-                for pred, orig_positions, ex in zip(
-                    preds[task],
-                    eval_orig_positions_map,
-                    eval_examples
-                )
-            ]
-
-            aggregated_results[f'{task}_scores'] = [
-                list(score[orig_positions]) + \
-                [0.999] * (len(ex.tokens) - len(orig_positions))
-                for score, orig_positions, ex in zip(
-                    scores[task],
-                    eval_orig_positions_map,
-                    eval_examples
-                )
-            ]
-
-        prediction_results = {
-            'idx': [
-                ex.guid for ex in eval_examples
-            ],
-            'tokens': [
-                 ' '.join(ex.tokens) for ex in eval_examples
-            ],
-            'sent_type_label': [
-                ex.sent_type for ex in eval_examples
-            ],
-            'sent_type_pred': [
-                id2label['sent_type'][x] for x in preds['sent_type']
-            ],
-            'sent_type_scores': [
-                str(score) for score in scores['sent_type']
-            ],
-            'sent_start': [
-                ex.sent_start for ex in eval_examples
-            ],
-            'sent_end': [
-                ex.sent_end for ex in eval_examples
-            ],
-            'tags_sequence_labels': [
-                ' '.join(ex.tags_sequence) for ex in eval_examples
-            ],
-            'tags_sequence_pred': [
-                ' '.join([id2label['tags_sequence'][x] if x != 0 else 'O' for x in sent])
-                for sent in aggregated_results['tags_sequence']
-            ],
-            'tags_sequence_scores': [
-                ' '.join([str(score) for score in sent])
-                for sent in aggregated_results['tags_sequence_scores']
-            ],
-            'tags_ids': [
-                ' '.join(ex.tags_ids) for ex in eval_examples
-            ],
-            'relations_sequence_labels': [
-                ' '.join(ex.relations_sequence) for ex in eval_examples
-            ],
-            'relations_sequence_pred': [
-                ' '.join([id2label['relations_sequence'][x] if x != 0 else '0' for x in sent])
-                for sent in aggregated_results['relations_sequence']
-            ],
-            'relations_sequence_scores': [
-                ' '.join([str(score) for score in sent])
-                for sent in aggregated_results['relations_sequence_scores']
-            ],
-            'subj_start': [
-                ex.subj_start for ex in eval_examples
-            ],
-            'subj_end': [
-                ex.subj_end for ex in eval_examples
-            ],
-            'infile_offsets': [
-                ' '.join([
-                    str(offset) for offset in ex.infile_offsets
-                ]) for ex in eval_examples
-            ],
-            'start_char': [
-                ' '.join(ex.start_char) for ex in eval_examples
-            ],
-            'end_char': [
-                ' '.join(ex.end_char) for ex in eval_examples
-            ],
-            'source': [
-                ex.source for ex in eval_examples
-            ]
-        }
-
-        prediction_results = pd.DataFrame(prediction_results)
-        test_file = test_file.split('/')[-1].replace('.json', '')
-        prediction_results.to_csv(
-            os.path.join(
-                args.output_dir,
-                f"{test_file}.tsv"),
-            sep='\t', index=False
+        dest_file = test_file.split('/')[-1].replace('.json', '')
+        write_predictions(
+            args, test_examples, test_features,
+            preds, scores, dest_file, metrics=result
         )
+
+
+def write_predictions(
+    args, examples, features, preds,
+    scores, dest_file, metrics=None
+):
+    aggregated_results = {}
+    orig_positions_map = [ex.orig_positions_map for ex in features]
+    neg_label_mapper = {
+        'tags_sequence': 'O',
+        'relations_sequence': '0'
+    }
+    for task in ['tags_sequence', 'relations_sequence']:
+        aggregated_results[task] = [
+            list(pred[orig_positions]) + \
+            [
+                label2id[task][neg_label_mapper[task]]
+            ] * (len(ex.tokens) - len(orig_positions))
+            for pred, orig_positions, ex in zip(
+                preds[task],
+                orig_positions_map,
+                examples
+            )
+        ]
+
+        aggregated_results[f'{task}_scores'] = [
+            list(score[orig_positions]) + \
+            [0.999] * (len(ex.tokens) - len(orig_positions))
+            for score, orig_positions, ex in zip(
+                scores[task],
+                orig_positions_map,
+                examples
+            )
+        ]
+
+    prediction_results = {
+        'idx': [
+            ex.guid for ex in examples
+        ],
+        'tokens': [
+             ' '.join(ex.tokens) for ex in examples
+        ],
+        'sent_type_label': [
+            ex.sent_type for ex in examples
+        ],
+        'sent_type_pred': [
+            id2label['sent_type'][x] for x in preds['sent_type']
+        ],
+        'sent_type_scores': [
+            str(score) for score in scores['sent_type']
+        ],
+        'sent_start': [
+            ex.sent_start for ex in examples
+        ],
+        'sent_end': [
+            ex.sent_end for ex in examples
+        ],
+        'tags_sequence_labels': [
+            ' '.join(ex.tags_sequence) for ex in examples
+        ],
+        'tags_sequence_pred': [
+            ' '.join([id2label['tags_sequence'][x] if x != 0 else 'O' for x in sent])
+            for sent in aggregated_results['tags_sequence']
+        ],
+        'tags_sequence_scores': [
+            ' '.join([str(score) for score in sent])
+            for sent in aggregated_results['tags_sequence_scores']
+        ],
+        'tags_ids': [
+            ' '.join(ex.tags_ids) for ex in examples
+        ],
+        'relations_sequence_labels': [
+            ' '.join(ex.relations_sequence) for ex in examples
+        ],
+        'relations_sequence_pred': [
+            ' '.join([id2label['relations_sequence'][x] if x != 0 else '0' for x in sent])
+            for sent in aggregated_results['relations_sequence']
+        ],
+        'relations_sequence_scores': [
+            ' '.join([str(score) for score in sent])
+            for sent in aggregated_results['relations_sequence_scores']
+        ],
+        'subj_start': [
+            ex.subj_start for ex in examples
+        ],
+        'subj_end': [
+            ex.subj_end for ex in examples
+        ],
+        'infile_offsets': [
+            ' '.join([
+                str(offset) for offset in ex.infile_offsets
+            ]) for ex in examples
+        ],
+        'start_char': [
+            ' '.join(ex.start_char) for ex in examples
+        ],
+        'end_char': [
+            ' '.join(ex.end_char) for ex in examples
+        ],
+        'source': [
+            ex.source for ex in examples
+        ]
+    }
+
+    prediction_results = pd.DataFrame(prediction_results)
+
+    prediction_results.to_csv(
+        os.path.join(
+            args.output_dir,
+            f"{dest_file}.tsv"),
+        sep='\t', index=False
+    )
+
+    if metrics is not None:
         with open(
             os.path.join(
                 args.output_dir,
-                f"{test_file}_eval_results.txt"
+                f"{dest_file}_eval_results.txt"
             ), "w"
         ) as f:
-            for key in sorted(result.keys()):
-                f.write("%s = %s\n" % (key, str(result[key])))
+            for key in sorted(metrics.keys()):
+                f.write("%s = %s\n" % (key, str(metrics[key])))
 
 
 if __name__ == "__main__":
@@ -807,7 +844,13 @@ if __name__ == "__main__":
                         help="Total batch size for training.")
     parser.add_argument("--eval_batch_size", default=8, type=int,
                         help="Total batch size for eval.")
-    parser.add_argument("--eval_metric", default="sent_type_1_f1-score", type=str)
+    parser.add_argument("--eval_metrics", default="+".join([
+            "sent_type_1_f1-score",
+            "tags_sequence_macro-avg_f1-score",
+            "relations_sequence_macro-avg_f1-score"
+        ]),
+        type=str
+    )
     parser.add_argument("--learning_rate", default=None, type=float,
                         help="The initial learning rate for Adam.")
     parser.add_argument("--num_train_epochs", default=5.0, type=float,
@@ -850,5 +893,6 @@ if __name__ == "__main__":
                         help="lr adjustment schedule")
     parser.add_argument("--log_train_metrics", action="store_true",
                         help="compute metrics for train set too")
-    arguments = parser.parse_args()
-    main(arguments)
+
+    parsed_args = parser.parse_args()
+    main(parsed_args)
