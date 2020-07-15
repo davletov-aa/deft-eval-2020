@@ -32,7 +32,7 @@ from sklearn.metrics import (
     precision_recall_fscore_support, classification_report
 )
 from torch.nn import CrossEntropyLoss
-from utils.data_preprocessing import (
+from utils.data_processing import (
     EVAL_TAGS, EVAL_RELATIONS
 )
 
@@ -849,7 +849,9 @@ if __name__ == "__main__":
                         help="Total batch size for training.")
     parser.add_argument("--eval_batch_size", default=8, type=int,
                         help="Total batch size for eval.")
-    parser.add_argument("--eval_metrics", default="+".join([
+    parser.add_argument(
+        "--eval_metrics",
+        default="+".join([
             "sent_type_1_f1-score",
             "tags_sequence_macro-avg_f1-score",
             "relations_sequence_macro-avg_f1-score"
@@ -887,7 +889,7 @@ if __name__ == "__main__":
     parser.add_argument("--filter_task_3", action="store_true",
                         help="exclude task 3 from training")
     parser.add_argument("--filter_task_1", action="store_true",
-                        help="exclude task 3 from training")
+                        help="exclude task 1 from training")
 
     parser.add_argument("--subtokens_pooling_type", type=str, default="first",
                         help="pooling mode in bert-ner, one of avg or first")
