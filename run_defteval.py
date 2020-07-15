@@ -306,7 +306,7 @@ def main(args):
         'tags_sequence_macro-avg_f1-score' in eval_metrics:
         eval_metrics.pop('tags_sequence_macro-avg_f1-score')
 
-    if args.tags_sequence_clf_weight == 0.0 and \
+    if args.relations_sequence_clf_weight == 0.0 and \
         'relations_sequence_macro-avg_f1-score' in eval_metrics:
         eval_metrics.pop('relations_sequence_macro-avg_f1-score')
 
