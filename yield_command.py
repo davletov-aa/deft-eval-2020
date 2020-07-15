@@ -26,7 +26,6 @@ def search(itertation_id: int, config_path: str, grid_path: str, device_id: str 
 	   device = device_id
 
 	output_dir = config.pop('output_dir')
-	eval_metric = config['eval_metric']
 
 	default_cmd = [
 		f'python+run_defteval.py'
@@ -62,22 +61,6 @@ def search(itertation_id: int, config_path: str, grid_path: str, device_id: str 
 				'relations_sequence_clf_weight'
 			]
 		]):
-			continue
-
-		if (
-			eval_metric.startswith('sent_type') and
-			cur_params_dict['sent_type_clf_weight'] == 0.0
-		):
-			continue
-		if (
-			eval_metric.startswith('tags_sequence') and
-			cur_params_dict['tags_sequence_clf_weight'] == 0.0
-		):
-			continue
-		if (
-			eval_metric.startswith('relations_sequence') and
-			cur_params_dict['relations_sequence_clf_weight'] == 0.0
-		):
 			continue
 
 		model_dir = "-".join([f'{n}-{cur_params_dict[x]}' for x, n in zip(hyperparams, abbrs)])
