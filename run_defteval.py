@@ -629,7 +629,9 @@ def main(args):
                         dest_file = f'dev_best_{eval_metric}'
                         write_predictions(
                             args, eval_examples, eval_features, preds,
-                            scores, dest_file, metrics=result
+                            scores, dest_file,
+                            label2id=label2id, id2label=id2label,
+                            metrics=result
                         )
                         if metric_id == 0:
                             test_preds, test_result, test_scores = evaluate(
@@ -643,7 +645,9 @@ def main(args):
                         dest_file = f'test_best_{eval_metric}'
                         write_predictions(
                             args, test_examples, test_features, test_preds,
-                            test_scores, dest_file, metrics=test_result
+                            test_scores, dest_file,
+                            label2id=label2id, id2label=id2label,
+                            metrics=test_result
                         )
 
             if args.log_train_metrics:
@@ -692,13 +696,14 @@ def main(args):
         dest_file = test_file.split('/')[-1].replace('.json', '')
         write_predictions(
             args, test_examples, test_features,
-            preds, scores, dest_file, metrics=result
+            preds, scores, dest_file,
+            label2id=label2id, id2label=id2label, metrics=result
         )
 
 
 def write_predictions(
     args, examples, features, preds,
-    scores, dest_file, metrics=None
+    scores, dest_file, label2id, id2label, metrics=None
 ):
     aggregated_results = {}
     orig_positions_map = [ex.orig_positions_map for ex in features]
