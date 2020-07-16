@@ -601,7 +601,8 @@ def write_task_1_predictions(
 def write_task_2_predictions(
     task_2_dataset,
     predictions_path: str,
-    output_dir: str
+    output_dir: str,
+    pool_type: str = 'max_score'
 ):
     predictions = pd.read_csv(predictions_path, sep='\t')
 
@@ -610,6 +611,10 @@ def write_task_2_predictions(
         'infile_offsets', 'tokens'
     ]:
         predictions.loc[:, column] = predictions[column].str.split(' ')
+
+    predictions.loc[:, 'tags_sequence_scores'] = predictions.tags_sequence_labels.apply(
+        lambda x: [float (y) for y in x.split(' ')]
+    )
 
     dataset = read_part(
         data_part_dir=task_2_dataset,
@@ -626,16 +631,21 @@ def write_task_2_predictions(
     for row in dataset.itertuples():
         window = row.tokens
         matched_predictions = []
+        scores = []
         for prow in predictions.itertuples():
             if window == prow.tokens:
                 matched_predictions.append(
                     list(prow.tags_sequence_pred) + \
                     ['O'] * (len(window) - len(prow.tags_sequence_pred))
                 )
+                scores.append(
+                    list(prow.tags_sequence_scores) + \
+                    [0.99] * (len(window) - len(prow.tags_sequence_pred))
+                )
 
         if len(matched_predictions) > 0:
             num_of_matches += 1
-            best_pred = get_best_from_each_column(matched_predictions)
+            best_pred = get_best_from_each_column(matched_predictions, scores, pool_type)
         else:
             best_pred = ['O'] * len(window)
 
@@ -680,11 +690,16 @@ def write_task_2_predictions(
             print('', file=f)
 
 
-def get_best_from_each_column(two_dim_array):
+def get_best_from_each_column(two_dim_array, two_dim_scores, pool_type='max_score'):
     array = np.array([x for x in two_dim_array]).T
-    best = [
-        Counter(x).most_common()[0][0] for x in array
-    ]
+    if pool_type == 'max_score':
+        scores = np.array([x for x in two_dim_scores]).T
+        max_scores_ids = np.argmax(scores, axis=1)
+        best = [array[i][best_id] for i, best_id in enumerate(max_scores_ids)]
+    else:
+        best = [
+            Counter(x).most_common()[0][0] for x in array
+        ]
     return best
 
 
@@ -746,7 +761,7 @@ def score_task_2_predictions(
         if clean_output:
             os.system(f'rm {temp_output}/*')
         write_task_2_predictions(
-            path_to_gold_data, predictions_path, temp_output
+            path_to_gold_data, predictions_path, temp_output, pool_type=pool_type
         )
         os.system(
             f'python {path_to_scorer_script} ' +
