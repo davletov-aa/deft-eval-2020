@@ -499,7 +499,9 @@ def get_task_1_sentences_official_way(
                         'tokens': new_sentence.lstrip().split(' '), 'label': has_def,
                         'infile_offsets': infile_offsets,
                         'idx': num_sents,
-                        "source": f"task_1_{source_file[7:]}"}, ignore_index=True)
+                        "source": f"task_1_{source_file[7:]}",
+                        "orig_sents": new_sentence
+                    }, ignore_index=True)
 
                     new_sentence = ''
                     has_def = 0
@@ -521,7 +523,8 @@ def get_task_1_sentences_official_way(
                         'tokens': new_sentence.lstrip().split(' '), 'label': has_def,
                         'infile_offsets': infile_offsets,
                         'idx': num_sents,
-                        "source": f"task_1_{source_file[7:]}"
+                        "source": f"task_1_{source_file[7:]}",
+                        "orig_sents": new_sentence
                     },
                     ignore_index=True
                 )
@@ -578,8 +581,8 @@ def write_task_1_predictions(
         file_preds = [sent_type_preds[i] for i in df.index.values]
 
         with open(os.path.join(output_dir, file), 'w') as fp:
-            for sent, pred in zip(df.tokens.values, file_preds):
-                print(f' {sent}\t{pred}', file=fp)
+            for sent, pred in zip(df.orig_sents.values, file_preds):
+                print(f'{sent}\t{pred}', file=fp)
 
     print('percentage of matches:', num_of_matches / len(task_1_dataset) * 100)
 
