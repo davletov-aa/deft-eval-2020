@@ -601,7 +601,8 @@ def write_task_1_predictions(
 def write_task_2_predictions(
     task_2_dataset,
     predictions_path: str,
-    output_dir: str
+    output_dir: str,
+    assert_if_exist: bool = True
 ):
     predictions = pd.read_csv(predictions_path, sep='\t')
 
@@ -644,7 +645,7 @@ def write_task_2_predictions(
     print('percentage of matches:', num_of_matches / len(dataset) * 100)
 
     dataset.loc[:, 'tags_sequence_pred'] = preds
-    if os.path.exists(output_dir):
+    if os.path.exists(output_dir) and assert_if_exist:
         assert ValueError(f'output_dir')
     else:
         os.makedirs(output_dir, exist_ok=True)
@@ -688,9 +689,10 @@ def get_best_from_each_column(two_dim_array):
     return best
 
 
-def score_task_1_predictions(
+def score_task_12_predictions(
     path_to_scorer_script: str,
-    path_to_gold_data: str,
+    path_to_task_1_dataset: str,
+    path_to_task_2_dataset: str,
     path_to_eval_config: str,
     predictions_regex: str,
     temp_output: str,
@@ -706,22 +708,29 @@ def score_task_1_predictions(
         if clean_output:
             os.system(f'rm {temp_output}/*')
         write_task_1_predictions(
-            path_to_gold_data, predictions_path, temp_output, pool_type=pool_type
+            path_to_task_1_dataset, predictions_path, temp_output, pool_type=pool_type
         )
-
+        write_task_2_predictions(
+            path_to_task_2_dataset, predictions_path, temp_output, False
+        )
         os.system(
             f'python {path_to_scorer_script} ' +
             f'{path_to_eval_config} ' +
-            f'{path_to_gold_data} ' +
+            f'{path_to_task_1_dataset} ' +
             f'{temp_output} {scores_dir}' 
         )
 
         with open(os.path.join(scores_dir, 'scores.txt')) as f:
-            lines = [
+            task_1_lines = [
                 line.strip()
                 for line in f.readlines() if line.startswith('subtask_1_f')
             ]
+            task_2_lines = [
+                line.strip()
+                for line in f.readlines() if line.startswith('subtask_2_f')
+            ]
         with open(os.path.join(scores_dir, 'scores.log'), 'a') as f:
             print(predictions_path, file=f)
-            print(lines[i], file=f)
+            print(task_1_lines[i], file=f)
+            print(task_2_lines[i], file=f)
             print('=' * 80)
