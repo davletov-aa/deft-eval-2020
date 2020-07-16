@@ -583,12 +583,10 @@ def write_task_1_predictions(
     for file in task_1_dataset.source.unique():
         df = task_1_dataset[task_1_dataset.source == file]
         file_preds = [sent_type_preds[i] for i in df.index.values]
-        seen_sents = set()
+
         with open(os.path.join(output_dir, file), 'w') as fp:
             for sent, pred in zip(df.tokens.values, file_preds):
-                if sent in seen_sents:
-                    continue
-                print(f' {sent}\t{pred}', file=fp)
+                print(' ' + sent.replace('""', '"') + '\t' + str(pred), file=fp)
                 seen_sents.add(sent)
 
     print('percentage of matches:', num_of_matches / len(task_1_dataset) * 100)
