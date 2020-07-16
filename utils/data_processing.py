@@ -477,7 +477,7 @@ def get_task_1_sentences_official_way(
     for source_file in tqdm(
         source_files,
         total=len(source_files),
-        desc='extracting task 1 files ...'
+        desc='extracting task 1 files ... '
     ):
         infile_offsets = []
         num_sents = 0
@@ -534,7 +534,7 @@ def get_task_1_sentences_official_way(
 ############################# postprocessing ##################################
 
 def write_task_1_predictions(
-    task_2_path_or_task_1,
+    task_1_dataset,
     predictions_path: str,
     output_dir: str
 ):
@@ -542,11 +542,18 @@ def write_task_1_predictions(
     predictions = pd.read_csv(predictions_path, sep='\t')
     predictions.loc[:, 'tokens'] = predictions.tokens.str.split(' ')
 
-    task_1_dataset = \
-        get_task_1_sentences_official_way(
-            task_2_path_or_task_1
-        ) if isinstance(task_2_path_or_task_1, str) else \
-        task_2_path_or_task_1.copy()
+    task_1_dataset = read_part(
+        task_1_dataset,
+        task_id=1
+    ) if isinstance(task_1_dataset, str) else \
+        task_1_dataset.copy()
+
+    task_1_dataset.loc[:, 'orig_sents'] = task_1_dataset.tokens.apply(
+        lambda x: ' '.join(x)
+    )
+    task_1_dataset.loc[:, 'tokens'] = task_1_dataset.orig_sents.apply(
+        lambda x: x.strip().split(' ')
+    )
 
     sent_type_preds = []
     num_of_matches = 0
