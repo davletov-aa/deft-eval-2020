@@ -142,7 +142,7 @@ def evaluate(
             desc='validation ... '
         )):
 
-        if (batch_id + 1) % skip_every_n_examples == 1:
+        if (batch_id + 1) % skip_every_n_examples != 1:
             continue
 
         batch = tuple([elem.to(device) for elem in batch])
