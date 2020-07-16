@@ -537,7 +537,8 @@ def get_task_1_sentences_official_way(
 def write_task_1_predictions(
     task_1_dataset,
     predictions_path: str,
-    output_dir: str
+    output_dir: str,
+    pool_type: str = 'max_score'
 ):
 
     predictions = pd.read_csv(predictions_path, sep='\t')
@@ -563,11 +564,16 @@ def write_task_1_predictions(
             sent_start = prow.sent_start
             sent_end = prow.sent_end + 1
             if window[sent_start:sent_end] == tokens:
-                matched_sentences_preds.append(prow.sent_type_pred)
+                matched_sentences_preds.append((prow.sent_type_pred, prow.sent_type_scores))
         if len(matched_sentences_preds):
-            sent_type_preds.append(
-                Counter(matched_sentences_preds).most_common()[0][0]
-            )
+            if pool_type == 'max_score':
+                sent_type_preds.append(
+                    sorted(matched_sentences_preds, key=lambda x: x[1])[-1][0]
+                )
+            else:
+                sent_type_preds.append(
+                    Counter([x[0] for x in matched_sentences_preds]).most_common()[0][0]
+                )
             num_of_matches += 1
         else:
             sent_type_preds.append('0')
@@ -689,7 +695,8 @@ def score_task_1_predictions(
     predictions_regex: str,
     temp_output: str,
     clean_output: bool = True,
-    scores_dir: str = 'scores'
+    scores_dir: str = 'scores',
+    pool_type: str = 'max_score'
 ):
 
     if not os.path.exists(scores_dir):
@@ -699,7 +706,7 @@ def score_task_1_predictions(
         if clean_output:
             os.system(f'rm {temp_output}/*')
         write_task_1_predictions(
-            path_to_gold_data, predictions_path, temp_output
+            path_to_gold_data, predictions_path, temp_output, pool_type=pool_type
         )
 
         os.system(
