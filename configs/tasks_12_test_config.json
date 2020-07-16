@@ -7,7 +7,7 @@
 	"filter_task_3": true,
 	"subtokens_pooling_type": "first",
 	"sequence_mode": "not-all",
-	"no_cuda": true,
+	"no_cuda": false,
 	"seed": 42,
 	"do_eval": true
 }
