@@ -537,6 +537,7 @@ def write_task_1_predictions(
 ):
 
     predictions = pd.read_csv(predictions_path, sep='\t')
+    predictions.loc[:, 'tokens'] = predictions.tokens.str.split(' ')
 
     task_1_dataset = \
         get_task_1_sentences_official_way(
@@ -545,6 +546,7 @@ def write_task_1_predictions(
         task_2_path_or_task_1.copy()
 
     sent_type_preds = []
+    num_of_matches = 0
     for row in task_1_dataset.itertuples():
         tokens = row.tokens
         matched_sentences_preds = []
@@ -558,6 +560,7 @@ def write_task_1_predictions(
             sent_type_preds.append(
                 Counter(matched_sentences_preds).most_common()[0][0]
             )
+            num_of_matches += 1
         else:
             sent_type_preds.append('0')
 
@@ -577,6 +580,8 @@ def write_task_1_predictions(
         with open(os.path.join(output_dir, file), 'w') as fp:
             for sent, pred in zip(df.tokens.values, file_preds):
                 print(f' {sent}\t{pred}', file=fp)
+
+    print('percentage of matches:', num_of_matches / len(task_1_dataset) * 100)
 
 
 def write_task_2_predictions(
