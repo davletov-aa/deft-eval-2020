@@ -548,11 +548,8 @@ def write_task_1_predictions(
     ) if isinstance(task_1_dataset, str) else \
         task_1_dataset.copy()
 
-    task_1_dataset.loc[:, 'orig_sents'] = task_1_dataset.tokens.apply(
-        lambda x: ' '.join(x)
-    )
-    task_1_dataset.loc[:, 'tokens'] = task_1_dataset.orig_sents.apply(
-        lambda x: x.strip().split(' ')
+    task_1_dataset.loc[:, 'tokens'] = task_1_dataset.tokens.apply(
+        lambda x: ' '.join(x).split(' ')
     )
 
     sent_type_preds = []
@@ -575,23 +572,23 @@ def write_task_1_predictions(
             sent_type_preds.append('0')
 
     task_1_dataset.loc[:, 'sent_type_preds'] = sent_type_preds
+    task_1_dataset.loc[:, 'tokens'] = task_1_dataset.tokens.apply(
+        lambda x: ' '.join()
+    )
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    task_1_dataset['tokens'] = task_1_dataset.tokens.apply(
-        lambda x: ' '.join(x)
-    )
     sent_type_preds = task_1_dataset.sent_type_preds.values
     for file in task_1_dataset.source.unique():
         df = task_1_dataset[task_1_dataset.source == file]
         file_preds = [sent_type_preds[i] for i in df.index.values]
         seen_sents = set()
         with open(os.path.join(output_dir, file), 'w') as fp:
-            for sent, pred in zip(df.orig_sents.values, file_preds):
+            for sent, pred in zip(df.tokens.values, file_preds):
                 if sent in seen_sents:
                     continue
-                print(f'{sent}\t{pred}', file=fp)
+                print(f' {sent}\t{pred}', file=fp)
                 seen_sents.add(sent)
 
     print('percentage of matches:', num_of_matches / len(task_1_dataset) * 100)
