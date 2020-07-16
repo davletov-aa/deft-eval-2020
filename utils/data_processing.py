@@ -742,7 +742,6 @@ def score_task_2_predictions(
     if not os.path.exists(scores_dir):
         os.makedirs(scores_dir)
 
-    offset = 0
     for i, predictions_path in enumerate(glob(predictions_regex)):
         if clean_output:
             os.system(f'rm {temp_output}/*')
@@ -753,7 +752,7 @@ def score_task_2_predictions(
             f'python {path_to_scorer_script} ' +
             f'{path_to_eval_config} ' +
             f'{path_to_gold_data} ' +
-            f'{temp_output} {scores_dir}' 
+            f'{temp_output} {scores_dir}'
         )
 
         with open(os.path.join(scores_dir, 'scores.txt')) as f:
@@ -763,11 +762,5 @@ def score_task_2_predictions(
             ]
         with open(os.path.join(scores_dir, 'scores.log'), 'a') as f:
             print(predictions_path, file=f)
-            try:
-                print(lines[i - offset], file=f)
-            except IndexError as err:
-                offset += 1
-                print(lines[i], file=f)
-                print(err)
-
+            print(lines[i], file=f)
             print('=' * 80)
