@@ -721,13 +721,14 @@ def score_task_12_predictions(
         )
 
         with open(os.path.join(scores_dir, 'scores.txt')) as f:
+            file_lines = f.readlines()
             task_1_lines = [
                 line.strip()
-                for line in f.readlines() if line.startswith('subtask_1_f')
+                for line in file_lines if line.startswith('subtask_1_f')
             ]
             task_2_lines = [
                 line.strip()
-                for line in f.readlines() if line.startswith('subtask_2_f')
+                for line in file_lines if line.startswith('subtask_2_f')
             ]
         with open(os.path.join(scores_dir, 'scores.log'), 'a') as f:
             print(predictions_path, file=f)
