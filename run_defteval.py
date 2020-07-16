@@ -119,7 +119,8 @@ def evaluate(
         label2id,
         compute_metrics=True,
         verbose=False, cur_train_mean_loss=None,
-        logger=None
+        logger=None,
+        skip_every_n_examples=1
     ):
     model.eval()
 
@@ -136,10 +137,14 @@ def evaluate(
     nb_eval_steps = 0
     preds = defaultdict(list)
 
-    for batch in tqdm(
+    for batch_id, batch in enumerate(tqdm(
             eval_dataloader, total=len(eval_dataloader),
             desc='validation ... '
-        ):
+        )):
+
+        if (batch_id + 1) % skip_every_n_examples == 1:
+            continue
+
         batch = tuple([elem.to(device) for elem in batch])
 
         input_ids, input_mask, segment_ids, \
@@ -456,6 +461,13 @@ def main(args):
         logger.info("  Num steps = %d", num_train_optimization_steps)
 
         best_result = defaultdict(float)
+        for eval_metric in eval_metrics:
+            best_result[eval_metric] = args.threshold
+            if eval_metric.startswith('sent_type'):
+                best_result[eval_metric] += 0.2
+        print('best results thresholds:')
+        print(best_result)
+
         eval_step = max(1, len(train_batches) // args.eval_per_epoch)
         lr = float(args.learning_rate)
 
@@ -642,6 +654,23 @@ def main(args):
                                 label2id, cur_train_mean_loss=None,
                                 logger=None
                             )
+
+                            output_model_file = os.path.join(
+                                args.output_dir,
+                                f"best_{eval_metric}_{WEIGHTS_NAME}"
+                            )
+                            save_model(
+                                args, model, tokenizer, output_model_file
+                            )
+                            for metric in predict_for_metrics[1:]:
+                                dest_model_path = os.path.join(
+                                    args.output_dir,
+                                    f"best_{metric}_{WEIGHTS_NAME}"
+                                )
+                                os.system(
+                                    f'cp {output_model_file} {dest_model_path}'
+                                )
+
                         dest_file = f'test_best_{eval_metric}'
                         write_predictions(
                             args, test_examples, test_features, test_preds,
@@ -650,13 +679,15 @@ def main(args):
                             metrics=test_result
                         )
 
+
             if args.log_train_metrics:
                 preds, result, scores = evaluate(
                     model, device, train_dataloader,
                     sent_type_ids,
                     tags_sequence_ids,
                     relations_sequence_ids,
-                    label2id, logger=logger
+                    label2id, logger=logger,
+                    skip_every_n_examples=30
                 )
                 result['global_step'] = global_step
                 result['epoch'] = epoch
@@ -699,6 +730,24 @@ def main(args):
             preds, scores, dest_file,
             label2id=label2id, id2label=id2label, metrics=result
         )
+
+
+def save_model(args, model, tokenizer, output_model_file):
+    start = time.time()
+    model_to_save = \
+        model.module if hasattr(model, 'module') else model
+
+    output_config_file = os.path.join(
+        args.output_dir, CONFIG_NAME
+    )
+    torch.save(
+        model_to_save.state_dict(), output_model_file
+    )
+    model_to_save.config.to_json_file(
+        output_config_file
+    )
+    tokenizer.save_vocabulary(args.output_dir)
+    print(f'model saved in {time.time() - start} seconds to {output_model_file}')
 
 
 def write_predictions(
@@ -826,8 +875,8 @@ def write_predictions(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--test_file", default='', type=str, required=False)
-    parser.add_argument("--model", default=None, type=str, required=True)
-    parser.add_argument("--data_dir", default=None, type=str, required=True,
+    parser.add_argument("--model", default='bert-large-uncased', type=str, required=True)
+    parser.add_argument("--data_dir", default='data', type=str, required=True,
                         help="The input data dir. Should contain the .json files for the task.")
     parser.add_argument("--output_dir", default=None, type=str, required=True,
                         help="The output directory where the model predictions and checkpoints will be written.")
@@ -858,9 +907,9 @@ if __name__ == "__main__":
         ]),
         type=str
     )
-    parser.add_argument("--learning_rate", default=None, type=float,
+    parser.add_argument("--learning_rate", default=1e-5, type=float,
                         help="The initial learning rate for Adam.")
-    parser.add_argument("--num_train_epochs", default=5.0, type=float,
+    parser.add_argument("--num_train_epochs", default=6.0, type=float,
                         help="Total number of training epochs to perform.")
     parser.add_argument("--warmup_proportion", default=0.1, type=float,
                         help="Proportion of training to perform linear learning rate warmup.\n"
@@ -872,7 +921,7 @@ if __name__ == "__main__":
                         help="the weight of task 1")
     parser.add_argument("--tags_sequence_clf_weight", default=1.0, type=float,
                         help="The weight of task 2")
-    parser.add_argument("--relations_sequence_clf_weight", default=0.0, type=float,
+    parser.add_argument("--relations_sequence_clf_weight", default=1.0, type=float,
                         help="The weight of task 3")
 
     parser.add_argument("--weight_decay", default=0.1, type=float,
@@ -884,7 +933,7 @@ if __name__ == "__main__":
                         help="Whether not to use CUDA when available")
     parser.add_argument('--seed', type=int, default=42,
                         help="random seed for initialization")
-    parser.add_argument('--gradient_accumulation_steps', type=int, default=4,
+    parser.add_argument('--gradient_accumulation_steps', type=int, default=8,
                         help="Number of updates steps to accumulate before performing a backward/update pass.")
     parser.add_argument("--filter_task_3", action="store_true",
                         help="exclude task 3 from training")
@@ -900,6 +949,8 @@ if __name__ == "__main__":
                         help="lr adjustment schedule")
     parser.add_argument("--log_train_metrics", action="store_true",
                         help="compute metrics for train set too")
+    parser.add_argument("--threshold", type=float, default=0.30,
+                        help="threshold for best models to save")
 
     parsed_args = parser.parse_args()
     main(parsed_args)

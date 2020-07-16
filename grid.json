@@ -1,19 +1,15 @@
 {
   "learning_rate": [
-    "1e-5",
-    "1e-4",
-    "5e-5"
+    "1e-5"
   ],
   "weight_decay": [
-    "0.01",
-    "0.1",
-    "0.15"
+    "0.1"
   ],
   "dropout": [
-    "0.1",
-    "0.2"
+    "0.1"
   ],
   "sent_type_clf_weight": [
+    "0",
     "1"
   ],
   "tags_sequence_clf_weight": [
