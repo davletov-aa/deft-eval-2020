@@ -6,6 +6,7 @@ from itertools import groupby
 from tqdm import tqdm
 import json
 import numpy as np
+from glob import glob
 
 
 EVAL_RELATIONS = [
@@ -587,7 +588,6 @@ def write_task_1_predictions(
         with open(os.path.join(output_dir, file), 'w') as fp:
             for sent, pred in zip(df.tokens.values, file_preds):
                 print(' ' + sent.replace('""', '"') + '\t' + str(pred), file=fp)
-                seen_sents.add(sent)
 
     print('percentage of matches:', num_of_matches / len(task_1_dataset) * 100)
 
@@ -680,3 +680,36 @@ def get_best_from_each_column(two_dim_array):
         Counter(x).most_common()[0][0] for x in array
     ]
     return best
+
+
+def score_task_1_predictions(
+    path_to_scorer_script: str,
+    path_to_gold_data: str,
+    path_to_eval_config: str,
+    predictions_regex: str,
+    temp_output: str,
+    clean_output: bool = True,
+    scores_dir: str = 'scores'
+):
+
+    if not os.path.exists(scores_dir):
+        os.makedirs(scores_dir)
+
+    for predictions_path in glob(predictions_regex):
+        if clean_output:
+            os.system(f'rm {temp_output}/*')
+        write_task_1_predictions(
+            path_to_gold_data, predictions_path, temp_output
+        )
+
+        result = os.system(
+            f'python {path_to_scorer_script} ' +
+            f'{path_to_eval_config} ' +
+            f'{path_to_gold_data} ' +
+            f'{temp_output} {scores_dir}' 
+        )
+
+        with open(os.path.join(scores_dir, 'scores.log'), 'a') as f:
+            print(predictions_path, file=f)
+            print(result, file=f)
+            print('=' * 80)
