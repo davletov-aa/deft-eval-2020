@@ -612,7 +612,7 @@ def write_task_2_predictions(
     ]:
         predictions.loc[:, column] = predictions[column].str.split(' ')
 
-    predictions.loc[:, 'tags_sequence_scores'] = predictions.tags_sequence_labels.apply(
+    predictions.loc[:, 'tags_sequence_scores'] = predictions.tags_sequence_scores.apply(
         lambda x: [float (y) for y in x.split(' ')]
     )
 
