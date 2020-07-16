@@ -573,7 +573,7 @@ def write_task_1_predictions(
 
     task_1_dataset.loc[:, 'sent_type_preds'] = sent_type_preds
     task_1_dataset.loc[:, 'tokens'] = task_1_dataset.tokens.apply(
-        lambda x: ' '.join()
+        lambda x: ' '.join(x)
     )
 
     if not os.path.exists(output_dir):
