@@ -695,21 +695,26 @@ def score_task_1_predictions(
     if not os.path.exists(scores_dir):
         os.makedirs(scores_dir)
 
-    for predictions_path in glob(predictions_regex):
+    for i, predictions_path in enumerate(glob(predictions_regex)):
         if clean_output:
             os.system(f'rm {temp_output}/*')
         write_task_1_predictions(
             path_to_gold_data, predictions_path, temp_output
         )
 
-        result = os.system(
+        os.system(
             f'python {path_to_scorer_script} ' +
             f'{path_to_eval_config} ' +
             f'{path_to_gold_data} ' +
             f'{temp_output} {scores_dir}' 
         )
 
+        with open(os.path.join(scores_dir, 'scores.txt')) as f:
+            lines = [
+                line.strip()
+                for line in f.readlines() if line.startswith('subtask_1_f')
+            ]
         with open(os.path.join(scores_dir, 'scores.log'), 'a') as f:
             print(predictions_path, file=f)
-            print(result, file=f)
+            print(lines[i], file=f)
             print('=' * 80)
