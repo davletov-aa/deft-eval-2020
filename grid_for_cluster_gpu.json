@@ -1,0 +1,29 @@
+{
+  "learning_rate": [
+    "1e-5"
+  ],
+  "weight_decay": [
+    "0.1"
+  ],
+  "dropout": [
+    "0.1"
+  ],
+  "sent_type_clf_weight": [
+    "0",
+    "0.1",
+    "0.3",
+    "1"
+  ],
+  "tags_sequence_clf_weight": [
+    "0",
+    "0.1",
+    "0.3",
+    "1"
+  ],
+  "relations_sequence_clf_weight": [
+    "0",
+    "0.1",
+    "0.3",
+    "1"
+  ]
+}

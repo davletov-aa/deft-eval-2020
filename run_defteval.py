@@ -227,6 +227,21 @@ def evaluate(
 
 
 def main(args):
+
+    # only for heatmap
+    if args.sent_type_clf_weight < 1 and args.relations_sequence_clf_weight < 1:
+        print(f'skipping ... {args.output_dir}: both tasks 1 and 3 weights below 1.0')
+        return
+
+    # if args.output_dirs_to_exclude != '':
+    #     output_dirs_to_exclue = json.load(open(args.output_dirs_to_exclude))
+    # else:
+    #     output_dirs_to_exclue = []
+
+    # if args.output_dir in output_dirs_to_exclue:
+    #     print(f'skipping ... {args.output_dir}: from exclude output dirs')
+    #     return 0
+
     device = torch.device(
         "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu")
     n_gpu = torch.cuda.device_count()
@@ -687,7 +702,7 @@ def main(args):
                     tags_sequence_ids,
                     relations_sequence_ids,
                     label2id, logger=logger,
-                    skip_every_n_examples=30
+                    skip_every_n_examples=args.skip_every_n_examples
                 )
                 result['global_step'] = global_step
                 result['epoch'] = epoch
@@ -951,6 +966,11 @@ if __name__ == "__main__":
                         help="compute metrics for train set too")
     parser.add_argument("--threshold", type=float, default=0.30,
                         help="threshold for best models to save")
+    parser.add_argument("--output_dirs_to_exclude", type=str, default='',
+                        help="path to json file containing list of output" + \
+                        " dirs to exclude fome trainig")
+    parser.add_argument("--skip_every_n_examples", type=int, default=30,
+                        help="number examples in train set to skip in evaluating metrics")
 
     parsed_args = parser.parse_args()
     main(parsed_args)
