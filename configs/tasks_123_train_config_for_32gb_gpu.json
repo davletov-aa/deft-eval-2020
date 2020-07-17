@@ -24,5 +24,5 @@
 	"seed": 42,
 	"do_eval": false,
 	"test_file": "",
-	"log_train_metrics": true
+	"log_train_metrics": false
 }
