@@ -28,7 +28,7 @@ def score_task_123_predictions(
     scores_dir: str = 'scores'
 ):
     path_to_scorer_script = 'evaluation/semeval2020_06_evaluation_main.py'
-    eval_config = 'evaluation/configs/eval_test.yaml'
+    path_to_eval_config = 'evaluation/configs/eval_test.yaml'
 
     for part in ['test', 'dev']:
         best_task_1_predictions_regex = \
@@ -41,7 +41,7 @@ def score_task_123_predictions(
         score_task_1_predictions(
             'evaluation/semeval2020_06_evaluation_main.py',
             path_to_gold_data=os.path.join(local_data_dir, f'task_1/{part}'),
-            eval_config=eval_config,
+            path_to_eval_config=path_to_eval_config,
             predictions_regex=best_task_1_predictions_regex,
             temp_output='temp_output',
             clean_output=True,
@@ -52,7 +52,7 @@ def score_task_123_predictions(
         score_task_1_predictions(
             path_to_scorer_script=path_to_scorer_script,
             path_to_gold_data=os.path.join(local_data_dir, f'task_1/{part}'),
-            eval_config=eval_config,
+            path_to_eval_config=path_to_eval_config,
             predictions_regex=best_task_1_predictions_regex,
             temp_output='temp_output',
             clean_output=True,
@@ -63,7 +63,7 @@ def score_task_123_predictions(
         score_task_2_predictions(
             path_to_scorer_script=path_to_scorer_script,
             path_to_gold_data=os.path.join(local_data_dir, f'task_2/{part}'),
-            path_to_eval_config=eval_config,
+            path_to_eval_config=path_to_eval_config,
             predictions_regex=best_task_2_predictions_regex,
             temp_output='temp_output',
             clean_output=True,
@@ -74,7 +74,7 @@ def score_task_123_predictions(
         score_task_2_predictions(
             path_to_scorer_script=path_to_scorer_script,
             path_to_gold_data=os.path.join(local_data_dir, f'task_2/{part}'),
-            path_to_eval_config=eval_config,
+            path_to_eval_config=path_to_eval_config,
             predictions_regex=best_task_2_predictions_regex,
             temp_output='temp_output',
             clean_output=True,
@@ -90,6 +90,8 @@ def main(
     comment: str = '',
     scores_dir: str = 'scores'
 ):
+    tasks = str(tasks)
+
     assert tasks in ['12', '2', '123']
     if tasks == '123':
         score_task_123_predictions(
