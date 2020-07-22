@@ -431,20 +431,22 @@ def get_roots_and_relations(task_3_dataset):
     for row in task_3_dataset.itertuples():
         tokens = row.tokens
         tags = row.tag
-        tag_starts = [i for i, tag in enumerate(tags) if tag.startswith('B-')]
-        additional_starts = []
-        if tags[0].startswith('I-'):
-            additional_starts.append(i)
-        for i in range(len(tags) - 1):
-            if tags[i] == 'O' and tags[i + 1].startswith('I-'):
-                additional_starts.append(i + 1)
+        tag_starts = []
+        for tag_label, x in groupby(enumerate(tags), key=lambda x: x[1][2:]):
+            if tag_label:
+                tag_starts.extend([
+                    position for i, (position, tag_label) in enumerate(
+                        list(x)
+                    ) if tag_label.startswith('B-') or i == 0
+                ])
 
-        tag_starts = tag_starts + additional_starts
         tag_ends = []
 
         for tag_start in tag_starts:
             position = tag_start + 1
-            while position < len(tags) and tags[position].startswith('I-'):
+
+            while position < len(tags) and tags[position].startswith('I-') and \
+                tags[position][2:] == tags[position - 1][2:]:
                 position += 1
             tag_ends.append(position)
 

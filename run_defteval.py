@@ -229,9 +229,11 @@ def evaluate(
 def main(args):
 
     # only for heatmap
-    if args.sent_type_clf_weight < 1 and args.relations_sequence_clf_weight < 1:
-        print(f'skipping ... {args.output_dir}: both tasks 1 and 3 weights below 1.0')
-        return
+    # if args.sent_type_clf_weight < 1 and args.relations_sequence_clf_weight < 1:
+    #     print(f'skipping ... {args.output_dir}: both tasks 1 and 3 weights below 1.0')
+    #     return
+
+    assert args.context_mode in ['full', 'center', 'left', 'right']
 
     # if args.output_dirs_to_exclude != '':
     #     output_dirs_to_exclue = json.load(open(args.output_dirs_to_exclude))
@@ -331,6 +333,12 @@ def main(args):
         eval_metrics.pop('relations_sequence_macro-avg_f1-score')
 
     assert len(eval_metrics) > 0, "inconsistent train params"
+
+    if args.context_mode != 'full':
+        for key in eval_metrics:
+            if key != 'sent_type_1_f1-score'
+                eval_metrics.pop(key)
+        assert 'sent_type_1_f1-score' in eval_metrics
 
     sent_type_labels_list = \
         processor.get_sent_type_labels(args.data_dir, logger)
@@ -960,6 +968,8 @@ if __name__ == "__main__":
     parser.add_argument("--sequence_mode", type=str, default="not-all",
                         help="train to predict for all subtokens or not"
                         "all or not-all")
+    parser.add_argument("--context_mode", type=str, default="full",
+                        help="context for task 1: one from center, full, left, right")
     parser.add_argument("--lr_schedule", type=str, default="linear_warmup",
                         help="lr adjustment schedule")
     parser.add_argument("--log_train_metrics", action="store_true",

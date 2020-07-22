@@ -253,7 +253,8 @@ class BertForMultitaskLearning(BertPreTrainedModel):
     def convert_examples_to_features(
             self, examples, label2id,
             max_seq_length, tokenizer, logger,
-            sequence_mode: str = 'not-all'
+            sequence_mode: str = 'not-all',
+            context_mode: str = 'full'
     ):
         assert sequence_mode in ['all', 'not-all']
         num_tokens = 0
@@ -301,6 +302,8 @@ class BertForMultitaskLearning(BertPreTrainedModel):
             token_valid_pos_ids = [0]
             orig_positions_map = []
 
+            out_of_context_subj = False
+
             for i, (token, tags_sequence_label,
                 relations_sequence_label) in enumerate(
                 zip(
@@ -314,6 +317,19 @@ class BertForMultitaskLearning(BertPreTrainedModel):
                 if sequence_mode == 'all':
                     raise NotImplementedError
                 elif sequence_mode == 'not-all':
+                    if context_mode == 'center' and (i > example.sent_end or i < example.sent_start):
+                        if i == example.subj_start:
+                            out_of_context_subj = True
+                        continue
+                    if context_mode == 'left' and i > example.sent_end:
+                        if i == example.subj_start:
+                            out_of_context_subj = True
+                        continue
+                    if context_mode == 'right' and i < example.sent_start:
+                        if i == example.subj_start:
+                            out_of_context_subj = True
+                        continue
+
                     if i == example.sent_start:
                         update_example_data(
                             token=[SENTENCE_START],
@@ -374,6 +390,9 @@ class BertForMultitaskLearning(BertPreTrainedModel):
 
                 tokens += sub_tokens
                 attention_mask += [1] * num_sub_tokens
+
+            if context_mode in ['center', 'left', 'right'] and out_of_context_subj:
+                continue
 
             if len(tokens) > max_seq_length - 1:
                 tokens = tokens[:max_seq_length - 1]
