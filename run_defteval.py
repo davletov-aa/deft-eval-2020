@@ -228,10 +228,10 @@ def evaluate(
 
 def main(args):
 
-    # only for heatmap
-    # if args.sent_type_clf_weight < 1 and args.relations_sequence_clf_weight < 1:
-    #     print(f'skipping ... {args.output_dir}: both tasks 1 and 3 weights below 1.0')
-    #     return
+    only for heatmap
+    if args.sent_type_clf_weight < 1 and args.relations_sequence_clf_weight < 1:
+        print(f'skipping ... {args.output_dir}: both tasks 1 and 3 weights below 1.0')
+        return
 
     assert args.context_mode in ['full', 'center', 'left', 'right']
 

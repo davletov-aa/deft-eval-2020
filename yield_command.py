@@ -65,17 +65,18 @@ def search(itertation_id: int, config_path: str, grid_path: str, device_id: str 
 			continue
 
 		model_dir = "-".join([f'{n}-{cur_params_dict[x]}' for x, n in zip(hyperparams, abbrs)])
+
 		if os.path.exists(os.path.join(output_dir, model_dir)):
 			continue
-		else:
-			iteration += 1
+
+		iteration += 1
 		cmd.append(f'--output_dir+{os.path.join(output_dir, model_dir)};')
 		cmd = '+'.join(cmd)
 
 		if iteration == itertation_id:
 			return cmd
 
-	return 'sleep+2m;'
+	return 'sleep+10s;'
 
 if __name__ == '__main__':
     fire.Fire(search)
