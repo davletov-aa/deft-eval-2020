@@ -8,7 +8,8 @@ def score_task_12(
     models_regex: str,
     local_data_dir: str,
     comment: str = '',
-    scores_dir: str = 'scores'
+    scores_dir: str = 'scores',
+    save_path: str = 'scores.json'
 ):
     pass
 
@@ -17,7 +18,8 @@ def score_task_2(
     models_regex: str,
     local_data_dir: str,
     comment: str = '',
-    scores_dir: str = 'scores'
+    scores_dir: str = 'scores',
+    save_path: str = 'scores.json'
 ):
     pass
 
@@ -26,11 +28,13 @@ def score_task_123(
     models_regex: str,
     local_data_dir: str,
     comment: str = '',
-    scores_dir: str = 'scores'
+    scores_dir: str = 'scores',
+    save_path: str = 'scores.json'
 ):
     path_to_scorer_script = 'evaluation/semeval2020_06_evaluation_main.py'
     path_to_eval_config = 'evaluation/configs/eval_test.yaml'
 
+    scores = {}
     for part in ['test', 'dev']:
         best_task_1_predictions_regex = \
             f'{models_regex}/{part}_best_sent_type*.tsv'
@@ -47,7 +51,7 @@ def score_task_123(
         print(glob(best_task_3_predictions_regex))
 
         for pool_type in ['max_score', 'ellections']:
-            score_task_1_predictions(
+            scores[f'{part}-best_sent_type-{pool_type}'] = score_task_1_predictions(
                 path_to_scorer_script=path_to_scorer_script,
                 path_to_gold_data=os.path.join(local_data_dir, f'task_1/{part}'),
                 path_to_eval_config=path_to_eval_config,
@@ -58,7 +62,7 @@ def score_task_123(
                 pool_type=pool_type
             )
 
-            score_task_2_predictions(
+            scores[f'{part}-best_tags_sequence-{pool_type}'] = score_task_2_predictions(
                 path_to_scorer_script=path_to_scorer_script,
                 path_to_gold_data=os.path.join(local_data_dir, f'task_2/{part}'),
                 path_to_eval_config=path_to_eval_config,
@@ -69,13 +73,17 @@ def score_task_123(
                 pool_type=pool_type
             )
 
+    json.dump(scores, open(save_path, 'w'))
+    print(scores)
+
 
 def main(
     tasks: str,
     models_regex: str,
     local_data_dir: str,
     comment: str = '',
-    scores_dir: str = 'scores'
+    scores_dir: str = 'scores',
+    save_path: str = 'scores.json'
 ):
     tasks = str(tasks)
 
@@ -86,6 +94,7 @@ def main(
             local_data_dir=local_data_dir,
             comment=comment,
             scores_dir=scores_dir,
+            save_path=save_path
         )
     elif tasks == '12':
         score_task_12(
@@ -93,6 +102,7 @@ def main(
             local_data_dir=local_data_dir,
             comment=comment,
             scores_dir=scores_dir,
+            save_path=save_path
         )
     else:
         score_task_2(
@@ -100,6 +110,7 @@ def main(
             local_data_dir=local_data_dir,
             comment=comment,
             scores_dir=scores_dir,
+            save_path=save_path
         )
 
 
