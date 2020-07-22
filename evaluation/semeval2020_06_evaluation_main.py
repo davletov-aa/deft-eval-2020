@@ -45,8 +45,8 @@ def main(config_path, ref_path, res_path, output_dir):
     cfg = safe_load(Path(config_path).open())
     ref_path = Path(ref_path)
     res_path = Path(res_path)
-    output_dir = Path(output_dir)
-    os.makedirs(output_dir, exist_ok=True)
+    for i in ['1', '2', '3']:
+        os.makedirs(output_dir + f'_task_{i}', exist_ok=True)
 
     eval_task_1 = cfg['task_1']['do_eval']
     eval_task_2 = cfg['task_2']['do_eval']
