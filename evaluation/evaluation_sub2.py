@@ -162,7 +162,7 @@ def write_to_scores(report, output_fname):
     output_fname = str(output_fname)
     with open(output_fname, 'a+') as scores_file:
 
-        if report is not None:
+        if report:
             scores_file.write('subtask_2_f1-score_macro: ' + str(report['macro avg']['f1-score']) + '\n')
             json_file = output_fname.replace('.txt', '.json')
             json.dump(report, open(json_file, 'w'))
