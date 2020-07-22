@@ -90,7 +90,7 @@ def main(
     comment: str = '',
     scores_dir: str = 'scores'
 ):
-    assert tasks in ['12', '2', '123']:
+    assert tasks in ['12', '2', '123']
     if tasks == '123':
         score_task_123_predictions(
             models_regex=models_regex,
