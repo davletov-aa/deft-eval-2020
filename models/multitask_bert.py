@@ -267,6 +267,8 @@ class BertForMultitaskLearning(BertPreTrainedModel):
         sep_token = "[SEP]"
         cls_token = "[CLS]"
 
+        accepted_examples = []
+
 
         def update_example_data(
             token=[], tags_sequence_label=[],
@@ -397,6 +399,8 @@ class BertForMultitaskLearning(BertPreTrainedModel):
             if context_mode in ['center', 'left', 'right'] and out_of_context_subj:
                 continue
 
+            accepted_examples.append(example)
+
             if len(tokens) > max_seq_length - 1:
                 tokens = tokens[:max_seq_length - 1]
                 attention_mask = attention_mask[:max_seq_length - 1]
@@ -518,4 +522,4 @@ class BertForMultitaskLearning(BertPreTrainedModel):
                 max_seq_length
         ))
 
-        return features
+        return features, accepted_examples

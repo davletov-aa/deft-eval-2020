@@ -426,7 +426,7 @@ def main(args):
     model.to(device)
 
     eval_examples = processor.get_dev_examples(args.data_dir)
-    eval_features = model.convert_examples_to_features(
+    eval_features, eval_new_examples = model.convert_examples_to_features(
         eval_examples, label2id, args.max_seq_length,
         tokenizer, logger, args.sequence_mode, context_mode=args.context_mode
     )
@@ -442,7 +442,7 @@ def main(args):
     ) if args.test_file == '' else args.test_file
     test_examples = processor.get_test_examples(test_file)
 
-    test_features = model.convert_examples_to_features(
+    test_features, test_new_examples = model.convert_examples_to_features(
         test_examples, label2id, args.max_seq_length,
         tokenizer, logger, args.sequence_mode, context_mode=args.context_mode
     )
@@ -456,7 +456,7 @@ def main(args):
 
     if args.do_train:
         train_examples = processor.get_train_examples(args.data_dir)
-        train_features = model.convert_examples_to_features(
+        train_features, _ = model.convert_examples_to_features(
             train_examples, label2id,
             args.max_seq_length, tokenizer, logger, args.sequence_mode,
             context_mode=args.context_mode
@@ -665,7 +665,7 @@ def main(args):
                     ):
                         dest_file = f'dev_best_{eval_metric}'
                         write_predictions(
-                            args, eval_examples, eval_features, preds,
+                            args, eval_new_examples, eval_features, preds,
                             scores, dest_file,
                             label2id=label2id, id2label=id2label,
                             metrics=result, context_mode=args.context_mode
@@ -698,7 +698,7 @@ def main(args):
 
                         dest_file = f'test_best_{eval_metric}'
                         write_predictions(
-                            args, test_examples, test_features, test_preds,
+                            args, test_new_examples, test_features, test_preds,
                             test_scores, dest_file,
                             label2id=label2id, id2label=id2label,
                             metrics=test_result, context_mode=args.context_mode
@@ -729,7 +729,7 @@ def main(args):
         ) if args.test_file == '' else args.test_file
         test_examples = processor.get_test_examples(test_file)
 
-        test_features = model.convert_examples_to_features(
+        test_features, test_new_examples = model.convert_examples_to_features(
             test_examples, label2id, args.max_seq_length,
             tokenizer, logger, args.sequence_mode, context_mode=args.context_mode
         )
@@ -751,7 +751,7 @@ def main(args):
         )
         dest_file = test_file.split('/')[-1].replace('.json', '')
         write_predictions(
-            args, test_examples, test_features,
+            args, test_new_examples, test_features,
             preds, scores, dest_file,
             label2id=label2id, id2label=id2label, metrics=result,
             context_mode=args.context_mode
@@ -778,21 +778,8 @@ def save_model(args, model, tokenizer, output_model_file):
 
 def write_predictions(
     args, examples, features, preds,
-    scores, dest_file, label2id, id2label, metrics=None,
-    context_mode='full'
+    scores, dest_file, label2id, id2label, metrics=None
 ):
-    if context_mode == 'center':
-        examples = [
-            ex for ex in examples if ex.sent_start <= ex.subj_start <= ex.sent_end
-        ]
-    elif context_mode == 'left':
-        examples = [
-            ex for ex in examples if ex.subj_start <= ex.sent_end
-        ]
-    elif context_mode == 'right':
-        examples = [
-            ex for ex in examples if ex.sent_start <= ex.subj_start
-        ]
     aggregated_results = {}
     orig_positions_map = [ex.orig_positions_map for ex in features]
     neg_label_mapper = {
