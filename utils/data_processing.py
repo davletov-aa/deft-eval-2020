@@ -774,6 +774,6 @@ def score_task_2_predictions(
         )
 
         scores = json.load(open(os.path.join(scores_dir, 'scores.json')))
-            results[predictions_path] = scores
+        results[predictions_path] = scores
 
     return results
