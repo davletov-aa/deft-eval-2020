@@ -58,21 +58,21 @@ def main(config_path, ref_path, res_path, output_dir):
 
     if eval_task_1:
         print('task_1_eval_labels:', cfg['task_1']['eval_labels'])
-        task_1_report = task_1_eval_main(ref_path, res_path, output_dir, cfg['task_1']['eval_labels'])
+        task_1_report = task_1_eval_main(ref_path, res_path, output_dir + '_task_1', cfg['task_1']['eval_labels'])
         if task_1_report:
             print(task_1_report)
         print()
 
     if eval_task_2:
         print('task_2_eval_labels:', cfg['task_2']['eval_labels'])
-        task_2_report = task_2_eval_main(ref_path, res_path, output_dir, cfg['task_2']['eval_labels'])
+        task_2_report = task_2_eval_main(ref_path, res_path, output_dir + '_task_2', cfg['task_2']['eval_labels'])
         if task_2_report:
             print(task_2_report)
         print()
 
     if eval_task_3:
         print('task_3_eval_labels:', cfg['task_3']['eval_labels'])
-        task_3_report = task_3_eval_main(ref_path, res_path, output_dir, cfg['task_3']['eval_labels'],
+        task_3_report = task_3_eval_main(ref_path, res_path, output_dir + '_task_3', cfg['task_3']['eval_labels'],
                                          cfg['task_2']['eval_labels'])
         if task_3_report:
             print(task_3_report)

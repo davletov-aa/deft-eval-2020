@@ -62,16 +62,16 @@ def score_task_123(
                 pool_type=pool_type
             )
 
-            # scores[f'{part}-best_tags_sequence-{pool_type}'] = score_task_2_predictions(
-            #     path_to_scorer_script=path_to_scorer_script,
-            #     path_to_gold_data=os.path.join(local_data_dir, f'task_2/{part}'),
-            #     path_to_eval_config=path_to_eval_config,
-            #     predictions_regex=best_task_2_predictions_regex,
-            #     temp_output='temp_output',
-            #     clean_output=True,
-            #     scores_dir=f'{scores_dir}/task_2/{part}-123-{pool_type}-{comment}',
-            #     pool_type=pool_type
-            # )
+            scores[f'{part}-best_tags_sequence-{pool_type}'] = score_task_2_predictions(
+                path_to_scorer_script=path_to_scorer_script,
+                path_to_gold_data=os.path.join(local_data_dir, f'task_2/{part}'),
+                path_to_eval_config=path_to_eval_config,
+                predictions_regex=best_task_2_predictions_regex,
+                temp_output='temp_output',
+                clean_output=True,
+                scores_dir=f'{scores_dir}/task_2/{part}-123-{pool_type}-{comment}',
+                pool_type=pool_type
+            )
 
     json.dump(scores, open(save_path, 'w'))
     print(scores)

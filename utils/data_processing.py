@@ -728,7 +728,7 @@ def score_task_1_predictions(
         write_task_1_predictions(
             path_to_gold_data, predictions_path, temp_output, pool_type=pool_type
         )
-        
+
         os.system(
             f'python {path_to_scorer_script} ' +
             f'{path_to_eval_config} ' +
@@ -736,7 +736,7 @@ def score_task_1_predictions(
             f'{temp_output} {scores_dir}' 
         )
 
-        scores = json.load(open(os.path.join(scores_dir, 'scores.json')))
+        scores = json.load(open(os.path.join(scores_dir + '_task_1', 'scores.json')))
         results[predictions_path] = scores
 
     return results
@@ -771,7 +771,7 @@ def score_task_2_predictions(
             f'{temp_output} {scores_dir}'
         )
 
-        scores = json.load(open(os.path.join(scores_dir, 'scores.json')))
+        scores = json.load(open(os.path.join(scores_dir + '_task_2', 'scores.json')))
         results[predictions_path] = scores
 
     return results
