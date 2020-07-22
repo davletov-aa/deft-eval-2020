@@ -336,7 +336,7 @@ def main(args):
 
     if args.context_mode != 'full':
         for key in eval_metrics:
-            if key != 'sent_type_1_f1-score'
+            if key != 'sent_type_1_f1-score':
                 eval_metrics.pop(key)
         assert 'sent_type_1_f1-score' in eval_metrics
 
