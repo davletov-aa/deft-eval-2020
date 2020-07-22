@@ -668,7 +668,7 @@ def main(args):
                             args, eval_examples, eval_features, preds,
                             scores, dest_file,
                             label2id=label2id, id2label=id2label,
-                            metrics=result
+                            metrics=result, context_mode=args.context_mode
                         )
                         if metric_id == 0:
                             test_preds, test_result, test_scores = evaluate(
@@ -701,7 +701,7 @@ def main(args):
                             args, test_examples, test_features, test_preds,
                             test_scores, dest_file,
                             label2id=label2id, id2label=id2label,
-                            metrics=test_result
+                            metrics=test_result, context_mode=args.context_mode
                         )
 
 
@@ -753,7 +753,8 @@ def main(args):
         write_predictions(
             args, test_examples, test_features,
             preds, scores, dest_file,
-            label2id=label2id, id2label=id2label, metrics=result
+            label2id=label2id, id2label=id2label, metrics=result,
+            context_mode=args.context_mode
         )
 
 
@@ -777,8 +778,21 @@ def save_model(args, model, tokenizer, output_model_file):
 
 def write_predictions(
     args, examples, features, preds,
-    scores, dest_file, label2id, id2label, metrics=None
+    scores, dest_file, label2id, id2label, metrics=None,
+    context_mode='full'
 ):
+    if context_mode == 'center':
+        examples = [
+            ex for ex in examples if ex['sent_start'] <= ex['subj_start'] <= ex['sent_end']
+        ]
+    elif context_mode == 'left':
+        examples = [
+            ex for ex in examples if ex['subj_start'] <= ex['sent_end']
+        ]
+    elif context_mode == 'right':
+        examples = [
+            ex for ex in examples if ex['sent_start'] <= ex['subj_start']
+        ]
     aggregated_results = {}
     orig_positions_map = [ex.orig_positions_map for ex in features]
     neg_label_mapper = {
