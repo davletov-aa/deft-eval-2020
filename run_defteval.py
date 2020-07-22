@@ -427,7 +427,7 @@ def main(args):
     eval_examples = processor.get_dev_examples(args.data_dir)
     eval_features = model.convert_examples_to_features(
         eval_examples, label2id, args.max_seq_length,
-        tokenizer, logger, args.sequence_mode
+        tokenizer, logger, args.sequence_mode, contex_mode=args.context_mode
     )
     logger.info("***** Dev *****")
     logger.info("  Num examples = %d", len(eval_examples))
@@ -443,7 +443,7 @@ def main(args):
 
     test_features = model.convert_examples_to_features(
         test_examples, label2id, args.max_seq_length,
-        tokenizer, logger, args.sequence_mode
+        tokenizer, logger, args.sequence_mode, contex_mode=args.context_mode
     )
     logger.info("***** Test *****")
     logger.info("  Num examples = %d", len(test_examples))
@@ -457,7 +457,8 @@ def main(args):
         train_examples = processor.get_train_examples(args.data_dir)
         train_features = model.convert_examples_to_features(
             train_examples, label2id,
-            args.max_seq_length, tokenizer, logger, args.sequence_mode
+            args.max_seq_length, tokenizer, logger, args.sequence_mode,
+            contex_mode=args.context_mode
         )
 
         if args.train_mode == 'sorted' or args.train_mode == 'random_sorted':
@@ -729,7 +730,7 @@ def main(args):
 
         test_features = model.convert_examples_to_features(
             test_examples, label2id, args.max_seq_length,
-            tokenizer, logger, args.sequence_mode
+            tokenizer, logger, args.sequence_mode, contex_mode=args.context_mode
         )
         logger.info("***** Test *****")
         logger.info("  Num examples = %d", len(test_examples))
