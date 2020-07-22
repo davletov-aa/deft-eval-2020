@@ -335,7 +335,8 @@ def main(args):
     assert len(eval_metrics) > 0, "inconsistent train params"
 
     if args.context_mode != 'full':
-        for key in eval_metrics:
+        keys = eval_metrics.keys()
+        for key in keys:
             if key != 'sent_type_1_f1-score':
                 eval_metrics.pop(key)
         assert 'sent_type_1_f1-score' in eval_metrics
@@ -427,7 +428,7 @@ def main(args):
     eval_examples = processor.get_dev_examples(args.data_dir)
     eval_features = model.convert_examples_to_features(
         eval_examples, label2id, args.max_seq_length,
-        tokenizer, logger, args.sequence_mode, contex_mode=args.context_mode
+        tokenizer, logger, args.sequence_mode, context_mode=args.context_mode
     )
     logger.info("***** Dev *****")
     logger.info("  Num examples = %d", len(eval_examples))
@@ -443,7 +444,7 @@ def main(args):
 
     test_features = model.convert_examples_to_features(
         test_examples, label2id, args.max_seq_length,
-        tokenizer, logger, args.sequence_mode, contex_mode=args.context_mode
+        tokenizer, logger, args.sequence_mode, context_mode=args.context_mode
     )
     logger.info("***** Test *****")
     logger.info("  Num examples = %d", len(test_examples))
@@ -458,7 +459,7 @@ def main(args):
         train_features = model.convert_examples_to_features(
             train_examples, label2id,
             args.max_seq_length, tokenizer, logger, args.sequence_mode,
-            contex_mode=args.context_mode
+            context_mode=args.context_mode
         )
 
         if args.train_mode == 'sorted' or args.train_mode == 'random_sorted':
@@ -730,7 +731,7 @@ def main(args):
 
         test_features = model.convert_examples_to_features(
             test_examples, label2id, args.max_seq_length,
-            tokenizer, logger, args.sequence_mode, contex_mode=args.context_mode
+            tokenizer, logger, args.sequence_mode, context_mode=args.context_mode
         )
         logger.info("***** Test *****")
         logger.info("  Num examples = %d", len(test_examples))
