@@ -668,7 +668,7 @@ def main(args):
                             args, eval_new_examples, eval_features, preds,
                             scores, dest_file,
                             label2id=label2id, id2label=id2label,
-                            metrics=result, context_mode=args.context_mode
+                            metrics=result
                         )
                         if metric_id == 0:
                             test_preds, test_result, test_scores = evaluate(
@@ -701,7 +701,7 @@ def main(args):
                             args, test_new_examples, test_features, test_preds,
                             test_scores, dest_file,
                             label2id=label2id, id2label=id2label,
-                            metrics=test_result, context_mode=args.context_mode
+                            metrics=test_result
                         )
 
 
@@ -753,8 +753,7 @@ def main(args):
         write_predictions(
             args, test_new_examples, test_features,
             preds, scores, dest_file,
-            label2id=label2id, id2label=id2label, metrics=result,
-            context_mode=args.context_mode
+            label2id=label2id, id2label=id2label, metrics=result
         )
 
 
