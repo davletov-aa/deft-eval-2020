@@ -766,17 +766,14 @@ def score_task_2_predictions(
             path_to_gold_data, predictions_path, temp_output, pool_type=pool_type
         )
 
-        try:
-            os.system(
-                f'python {path_to_scorer_script} ' +
-                f'{path_to_eval_config} ' +
-                f'{path_to_gold_data} ' +
-                f'{temp_output} {scores_dir}'
-            )
+        os.system(
+            f'python {path_to_scorer_script} ' +
+            f'{path_to_eval_config} ' +
+            f'{path_to_gold_data} ' +
+            f'{temp_output} {scores_dir}'
+        )
 
-            scores = json.load(open(os.path.join(scores_dir, 'scores.json')))
+        scores = json.load(open(os.path.join(scores_dir, 'scores.json')))
             results[predictions_path] = scores
-        except AttributeError as attrerr:
-            print(attrerr)
-            results[predictions_path] = {}
+
     return results

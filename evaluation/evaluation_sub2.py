@@ -213,6 +213,9 @@ def task_2_eval_main(ref_path, res_path, output_dir, eval_labels):
         sys.exit(message.format(str(missing)))
 
 
-    report = evaluate(y_gold, y_pred, eval_labels)
+    try:
+        report = evaluate(y_gold, y_pred, eval_labels)
+    except:
+        report = {}
     write_to_scores(report, Path(output_dir).joinpath('scores.txt'))
     return report
