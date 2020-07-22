@@ -271,18 +271,18 @@ def write_to_scores(report, output_fname):
           report: classification_report generated from evaluate()
       Returns:
           None
-      """
+    """
+    output_fname = str(output_fname)
     with open(output_fname, 'a+') as scores_file:
         # scores_file.write('precision_macro: ' + report['macro']['p'])
         # scores_file.write('recall_macro: ' + report['macro']['r'])
 
         if report is not None:
             scores_file.write('subtask_3_f1-score_macro: ' + str(report['macro']['f']) + '\n')
+            json_file = output_fname.replace('.txt', '.json')
+            json.dump(report, open(json_file, 'w'))
         else:
             scores_file.write('subtask_3_f1-score_macro: -1\n')
-
-    json_file = output_fname.replace('.txt', '.json')
-    json.dump(report, open(json_file, 'w'))
 
 
 def task_3_eval_main(ref_path, res_path,  output_dir, eval_relations, eval_labels):
