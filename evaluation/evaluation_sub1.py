@@ -157,10 +157,11 @@ def write_to_scores(report, output_fname):
 
         if report:
             scores_file.write('subtask_1_f1-score: ' + str(report['1']['f1-score']) + '\n')
-            json_file = output_fname.replace('.txt', '.json')
-            json.dump(report, open(json_file, 'w'))
         else:
             scores_file.write('subtask_1_f1-score: -1\n')
+
+        json_file = output_fname.replace('.txt', '.json')
+        json.dump(report, open(json_file, 'w'))
 
 
 def task_1_eval_main(ref_path, res_path, output_dir, eval_labels):
