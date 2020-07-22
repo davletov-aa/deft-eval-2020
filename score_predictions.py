@@ -3,7 +3,7 @@ import os
 from utils.data_processing import *
 
 
-def score_task_12_predictions(
+def score_task_12(
     models_regex: str,
     local_data_dir: str,
     comment: str = '',
@@ -12,7 +12,7 @@ def score_task_12_predictions(
     pass
 
 
-def score_task_2_predictions(
+def score_task_2(
     models_regex: str,
     local_data_dir: str,
     comment: str = '',
@@ -21,7 +21,7 @@ def score_task_2_predictions(
     pass
 
 
-def score_task_123_predictions(
+def score_task_123(
     models_regex: str,
     local_data_dir: str,
     comment: str = '',
@@ -38,49 +38,28 @@ def score_task_123_predictions(
         best_task_3_predictions_regex = \
             f'{models_regex}/best_relations_sequence*{part}.tsv'
 
-        score_task_1_predictions(
-            path_to_scorer_script=path_to_scorer_script,
-            path_to_gold_data=os.path.join(local_data_dir, f'task_1/{part}'),
-            path_to_eval_config=path_to_eval_config,
-            predictions_regex=best_task_1_predictions_regex,
-            temp_output='temp_output',
-            clean_output=True,
-            scores_dir=f'{scores_dir}/task_1/{part}-123-maxscore-{comment}',
-            pool_type='max_score'
-        )
+        for pool_type in ['max_score', 'ellections']:
+            score_task_1_predictions(
+                path_to_scorer_script=path_to_scorer_script,
+                path_to_gold_data=os.path.join(local_data_dir, f'task_1/{part}'),
+                path_to_eval_config=path_to_eval_config,
+                predictions_regex=best_task_1_predictions_regex,
+                temp_output='temp_output',
+                clean_output=True,
+                scores_dir=f'{scores_dir}/task_1/{part}-123-{pool_type}-{comment}',
+                pool_type=pool_type
+            )
 
-        score_task_1_predictions(
-            path_to_scorer_script=path_to_scorer_script,
-            path_to_gold_data=os.path.join(local_data_dir, f'task_1/{part}'),
-            path_to_eval_config=path_to_eval_config,
-            predictions_regex=best_task_1_predictions_regex,
-            temp_output='temp_output',
-            clean_output=True,
-            scores_dir=f'{scores_dir}/task_1/{part}-123-ellections-{comment}',
-            pool_type='ellections'
-        )
-
-        score_task_2_predictions(
-            path_to_scorer_script=path_to_scorer_script,
-            path_to_gold_data=os.path.join(local_data_dir, f'task_2/{part}'),
-            path_to_eval_config=path_to_eval_config,
-            predictions_regex=best_task_2_predictions_regex,
-            temp_output='temp_output',
-            clean_output=True,
-            scores_dir=f'{scores_dir}/task_2/{part}-123-maxscore-{comment}',
-            pool_type='max_score'
-        )
-
-        score_task_2_predictions(
-            path_to_scorer_script=path_to_scorer_script,
-            path_to_gold_data=os.path.join(local_data_dir, f'task_2/{part}'),
-            path_to_eval_config=path_to_eval_config,
-            predictions_regex=best_task_2_predictions_regex,
-            temp_output='temp_output',
-            clean_output=True,
-            scores_dir=f'{scores_dir}/task_2/{part}-123-ellections-{comment}',
-            pool_type='ellections'
-        )
+            score_task_2_predictions(
+                path_to_scorer_script=path_to_scorer_script,
+                path_to_gold_data=os.path.join(local_data_dir, f'task_2/{part}'),
+                path_to_eval_config=path_to_eval_config,
+                predictions_regex=best_task_2_predictions_regex,
+                temp_output='temp_output',
+                clean_output=True,
+                scores_dir=f'{scores_dir}/task_2/{part}-123-{pool_type}-{comment}',
+                pool_type=pool_type
+            )
 
 
 def main(
@@ -94,21 +73,21 @@ def main(
 
     assert tasks in ['12', '2', '123']
     if tasks == '123':
-        score_task_123_predictions(
+        score_task_123(
             models_regex=models_regex,
             local_data_dir=local_data_dir,
             comment=comment,
             scores_dir=scores_dir,
         )
     elif tasks == '12':
-        score_task_12_predictions(
+        score_task_12(
             models_regex=models_regex,
             local_data_dir=local_data_dir,
             comment=comment,
             scores_dir=scores_dir,
         )
     else:
-        score_task_2_predictions(
+        score_task_2(
             models_regex=models_regex,
             local_data_dir=local_data_dir,
             comment=comment,
