@@ -68,7 +68,7 @@ def score_task_123_predictions(
             temp_output='temp_output',
             clean_output=True,
             scores_dir=f'{scores_dir}/task_2/{part}-123-maxscore-{comment}',
-            pool_type: str = 'max_score'
+            pool_type='max_score'
         )
 
         score_task_2_predictions(
@@ -79,7 +79,7 @@ def score_task_123_predictions(
             temp_output='temp_output',
             clean_output=True,
             scores_dir=f'{scores_dir}/task_2/{part}-123-ellections-{comment}',
-            pool_type: str = 'ellections'
+            pool_type='ellections'
         )
 
 
