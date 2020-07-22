@@ -32,11 +32,11 @@ def score_task_123_predictions(
 
     for part in ['test', 'dev']:
         best_task_1_predictions_regex = \
-            'bert_stype_tags_and_relations_first_slen_256_eval_perep_4_linear/*/best_sent_type*{part}.tsv'
+            f'{models_regex}/best_sent_type*{part}.tsv'
         best_task_2_predictions_regex = \
-            'bert_stype_tags_and_relations_first_slen_256_eval_perep_4_linear/*/best_tags_sequence*{part}.tsv'
+            f'{models_regex}/best_tags_sequence*{part}.tsv'
         best_task_3_predictions_regex = \
-            'bert_stype_tags_and_relations_first_slen_256_eval_perep_4_linear/*/best_relations_sequence*{part}.tsv'
+            f'{models_regex}/best_relations_sequence*{part}.tsv'
 
         score_task_1_predictions(
             'evaluation/semeval2020_06_evaluation_main.py',
