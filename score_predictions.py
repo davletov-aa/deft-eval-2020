@@ -39,7 +39,7 @@ def score_task_123_predictions(
             f'{models_regex}/best_relations_sequence*{part}.tsv'
 
         score_task_1_predictions(
-            'evaluation/semeval2020_06_evaluation_main.py',
+            path_to_scorer_script=path_to_scorer_script,
             path_to_gold_data=os.path.join(local_data_dir, f'task_1/{part}'),
             path_to_eval_config=path_to_eval_config,
             predictions_regex=best_task_1_predictions_regex,
