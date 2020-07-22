@@ -3,9 +3,29 @@ import os
 from utils.data_processing import *
 
 
+def score_task_12_predictions(
+	models_regex: str,
+	local_data_dir: str,
+	comment: str = '',
+	scores_dir: str = 'scores'
+):
+	pass
+
+
+def score_task_2_predictions(
+	models_regex: str,
+	local_data_dir: str,
+	comment: str = '',
+	scores_dir: str = 'scores'
+):
+	pass
+
+
 def score_task_123_predictions(
 	models_regex: str,
-	local_data_dir: str
+	local_data_dir: str,
+	comment: str = '',
+	scores_dir: str = 'scores'
 ):
 	path_to_scorer_script = 'evaluation/semeval2020_06_evaluation_main.py'
 	eval_config = 'evaluation/configs/eval_test.yaml'
@@ -25,7 +45,7 @@ def score_task_123_predictions(
 		    best_task_1_predictions_regex,
 		    temp_output='temp_output',
 		    clean_output=True,
-		    scores_dir=f'scores/task_1/{part}-123-maxscore',
+		    scores_dir=f'{scores_dir}/task_1/{part}-123-maxscore-{comment}',
 		    pool_type='max_score'
     	)
 
@@ -36,7 +56,7 @@ def score_task_123_predictions(
 		    best_task_1_predictions_regex,
 		    temp_output='temp_output',
 		    clean_output=True,
-		    scores_dir=f'scores/task_1/{part}-123-ellections',
+		    scores_dir=f'{scores_dir}/task_1/{part}-123-ellections-{comment}',
 		    pool_type='ellections'
     	)
 
@@ -47,7 +67,7 @@ def score_task_123_predictions(
 		    predictions_regex=best_task_2_predictions_regex,
 		    temp_output='temp_output',
 		    clean_output=True,
-		    scores_dir=f'scores/task_2/{part}-123-maxscore',
+		    scores_dir=f'{scores_dir}/task_2/{part}-123-maxscore-{comment}',
 		    pool_type: str = 'max_score'
 		)
 
@@ -58,6 +78,41 @@ def score_task_123_predictions(
 		    predictions_regex=best_task_2_predictions_regex,
 		    temp_output='temp_output',
 		    clean_output=True,
-		    scores_dir=f'scores/task_2/{part}-123-ellections',
+		    scores_dir=f'{scores_dir}/task_2/{part}-123-ellections-{comment}',
 		    pool_type: str = 'ellections'
 		)
+
+
+def main(
+	tasks: str,
+	models_regex: str,
+	local_data_dir: str,
+	comment: str = '',
+	scores_dir: str = 'scores'
+):
+	assert tasks in ['12', '2', '123']:
+	if tasks == '123':
+		score_task_123_predictions(
+			models_regex=models_regex,
+			local_data_dir=local_data_dir,
+			comment=comment,
+			scores_dir=scores_dir,
+		)
+	elif tasks == '12':
+		score_task_12_predictions(
+			models_regex=models_regex,
+			local_data_dir=local_data_dir,
+			comment=comment,
+			scores_dir=scores_dir,
+		)
+	else:
+		score_task_2_predictions(
+			models_regex=models_regex,
+			local_data_dir=local_data_dir,
+			comment=comment,
+			scores_dir=scores_dir,
+		)
+
+
+if __name__ == '__main__':
+	fire.Fire(main)
