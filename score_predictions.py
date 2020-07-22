@@ -40,9 +40,9 @@ def score_task_123_predictions(
 
         score_task_1_predictions(
             'evaluation/semeval2020_06_evaluation_main.py',
-            os.path.join(local_data_dir, f'task_1/{part}'),
+            path_to_gold_data=os.path.join(local_data_dir, f'task_1/{part}'),
             eval_config=eval_config,
-            best_task_1_predictions_regex,
+            predictions_regex=best_task_1_predictions_regex,
             temp_output='temp_output',
             clean_output=True,
             scores_dir=f'{scores_dir}/task_1/{part}-123-maxscore-{comment}',
@@ -51,9 +51,9 @@ def score_task_123_predictions(
 
         score_task_1_predictions(
             path_to_scorer_script=path_to_scorer_script,
-            os.path.join(local_data_dir, f'task_1/{part}'),
+            path_to_gold_data=os.path.join(local_data_dir, f'task_1/{part}'),
             eval_config=eval_config,
-            best_task_1_predictions_regex,
+            predictions_regex=best_task_1_predictions_regex,
             temp_output='temp_output',
             clean_output=True,
             scores_dir=f'{scores_dir}/task_1/{part}-123-ellections-{comment}',
@@ -62,7 +62,7 @@ def score_task_123_predictions(
 
         score_task_2_predictions(
             path_to_scorer_script=path_to_scorer_script,
-            os.path.join(local_data_dir, f'task_2/{part}'),
+            path_to_gold_data=os.path.join(local_data_dir, f'task_2/{part}'),
             path_to_eval_config=eval_config,
             predictions_regex=best_task_2_predictions_regex,
             temp_output='temp_output',
@@ -73,7 +73,7 @@ def score_task_123_predictions(
 
         score_task_2_predictions(
             path_to_scorer_script=path_to_scorer_script,
-            os.path.join(local_data_dir, f'task_2/{part}'),
+            path_to_gold_data=os.path.join(local_data_dir, f'task_2/{part}'),
             path_to_eval_config=eval_config,
             predictions_regex=best_task_2_predictions_regex,
             temp_output='temp_output',
