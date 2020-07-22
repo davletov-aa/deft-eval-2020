@@ -320,14 +320,17 @@ class BertForMultitaskLearning(BertPreTrainedModel):
                     if context_mode == 'center' and (i > example.sent_end or i < example.sent_start):
                         if i == example.subj_start:
                             out_of_context_subj = True
+                        offset -= 1
                         continue
                     if context_mode == 'left' and i > example.sent_end:
                         if i == example.subj_start:
                             out_of_context_subj = True
+                        offset -= 1
                         continue
                     if context_mode == 'right' and i < example.sent_start:
                         if i == example.subj_start:
                             out_of_context_subj = True
+                        offset -= 1
                         continue
 
                     if i == example.sent_start:
@@ -492,6 +495,7 @@ class BertForMultitaskLearning(BertPreTrainedModel):
                     logger.info("segment_ids: %s" % " ".join(
                         [str(x) for x in segment_ids]
                     ))
+
             features.append(
                 InputFeatures(
                     input_ids=input_ids,

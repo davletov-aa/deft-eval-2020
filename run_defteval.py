@@ -335,7 +335,7 @@ def main(args):
     assert len(eval_metrics) > 0, "inconsistent train params"
 
     if args.context_mode != 'full':
-        keys = eval_metrics.keys()
+        keys = list(eval_metrics.keys())
         for key in keys:
             if key != 'sent_type_1_f1-score':
                 eval_metrics.pop(key)
