@@ -1,6 +1,7 @@
 import fire
 import os
 from utils.data_processing import *
+from glob import glob
 
 
 def score_task_12(
@@ -37,6 +38,13 @@ def score_task_123(
             f'{models_regex}/best_tags_sequence*{part}.tsv'
         best_task_3_predictions_regex = \
             f'{models_regex}/best_relations_sequence*{part}.tsv'
+
+        print('best task 1 predictions:')
+        print(glob(best_task_1_predictions_regex))
+        print('best task 2 predictions:')
+        print(glob(best_task_2_predictions_regex))
+        print('best task 3 predictions:')
+        print(glob(best_task_3_predictions_regex))
 
         for pool_type in ['max_score', 'ellections']:
             score_task_1_predictions(
