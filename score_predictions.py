@@ -33,11 +33,11 @@ def score_task_123(
 
     for part in ['test', 'dev']:
         best_task_1_predictions_regex = \
-            f'{models_regex}/best_sent_type*{part}.tsv'
+            f'{models_regex}/{part}_best_sent_type*.tsv'
         best_task_2_predictions_regex = \
-            f'{models_regex}/best_tags_sequence*{part}.tsv'
+            f'{models_regex}/{part}_best_tags_sequence*.tsv'
         best_task_3_predictions_regex = \
-            f'{models_regex}/best_relations_sequence*{part}.tsv'
+            f'{models_regex}/{part}_best_relations_sequence*.tsv'
 
         print('best task 1 predictions:')
         print(glob(best_task_1_predictions_regex))
