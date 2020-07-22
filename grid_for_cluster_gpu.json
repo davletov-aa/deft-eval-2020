@@ -9,21 +9,19 @@
     "0.1"
   ],
   "sent_type_clf_weight": [
-    "0",
-    "0.1",
-    "0.3",
     "1"
   ],
   "tags_sequence_clf_weight": [
     "0",
-    "0.1",
-    "0.3",
     "1"
   ],
   "relations_sequence_clf_weight": [
     "0",
-    "0.1",
-    "0.3",
     "1"
+  ],
+  "context_mode": [
+    "center",
+    "left",
+    "right"
   ]
 }
