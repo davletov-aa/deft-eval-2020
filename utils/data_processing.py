@@ -719,6 +719,8 @@ def score_task_1_predictions(
     if not os.path.exists(scores_dir):
         os.makedirs(scores_dir)
 
+    results = {}
+
     for i, predictions_path in enumerate(glob(predictions_regex)):
         if clean_output:
             os.system(f'rm {temp_output}/*')
@@ -734,15 +736,9 @@ def score_task_1_predictions(
             f'{temp_output} {scores_dir}' 
         )
 
-        with open(os.path.join(scores_dir, 'scores.txt')) as f:
-            lines = [
-                line.strip()
-                for line in f.readlines() if line.startswith('subtask_1_f')
-            ]
-        with open(os.path.join(scores_dir, 'scores.log'), 'a') as f:
-            print(predictions_path, file=f)
-            print(lines[i], file=f)
-            print('=' * 80)
+        scores = json.load(open(os.path.join(scores_dir, 'scores.json')))
+        results[predictions_path] = scores
+    return results
 
 
 def score_task_2_predictions(
@@ -756,6 +752,7 @@ def score_task_2_predictions(
     pool_type: str = 'max_score'
 ):
 
+    results = {}
     if not os.path.exists(scores_dir):
         os.makedirs(scores_dir)
 
@@ -772,12 +769,6 @@ def score_task_2_predictions(
             f'{temp_output} {scores_dir}'
         )
 
-        with open(os.path.join(scores_dir, 'scores.txt')) as f:
-            lines = [
-                line.strip()
-                for line in f.readlines() if line.startswith('subtask_2_f')
-            ]
-        with open(os.path.join(scores_dir, 'scores.log'), 'a') as f:
-            print(predictions_path, file=f)
-            print(lines[i], file=f)
-            print('=' * 80)
+        scores = json.load(open(os.path.join(scores_dir, 'scores.json')))
+        results[predictions_path] = scores
+    return results
