@@ -783,15 +783,15 @@ def write_predictions(
 ):
     if context_mode == 'center':
         examples = [
-            ex for ex in examples if ex['sent_start'] <= ex['subj_start'] <= ex['sent_end']
+            ex for ex in examples if ex.sent_start <= ex.subj_start <= ex.sent_end
         ]
     elif context_mode == 'left':
         examples = [
-            ex for ex in examples if ex['subj_start'] <= ex['sent_end']
+            ex for ex in examples if ex.subj_start <= ex.sent_end
         ]
     elif context_mode == 'right':
         examples = [
-            ex for ex in examples if ex['sent_start'] <= ex['subj_start']
+            ex for ex in examples if ex.sent_start <= ex.subj_start
         ]
     aggregated_results = {}
     orig_positions_map = [ex.orig_positions_map for ex in features]
