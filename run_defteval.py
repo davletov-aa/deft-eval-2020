@@ -734,37 +734,39 @@ def main(args):
                     train_writer.add_scalar(key, value, global_step)
 
     if args.do_eval:
-        test_file = os.path.join(
+        test_files = os.path.join(
             args.data_dir, 'test.json'
         ) if args.test_file == '' else args.test_file
-        test_examples = processor.get_test_examples(test_file)
 
-        test_features, test_new_examples = model.convert_examples_to_features(
-            test_examples, label2id, args.max_seq_length,
-            tokenizer, logger, args.sequence_mode, context_mode=args.context_mode
-        )
-        logger.info("***** Test *****")
-        logger.info("  Num examples = %d", len(test_examples))
-        logger.info("  Batch size = %d", args.eval_batch_size)
+        for test_file in test_files.split("+"):
+            test_examples = processor.get_test_examples(test_file)
 
-        test_dataloader, test_sent_type_labels_ids, \
-        test_tags_sequence_labels_ids, test_relations_sequence_labels_ids = \
-            get_dataloader_and_tensors(test_features, args.eval_batch_size)
+            test_features, test_new_examples = model.convert_examples_to_features(
+                test_examples, label2id, args.max_seq_length,
+                tokenizer, logger, args.sequence_mode, context_mode=args.context_mode
+            )
+            logger.info("***** Test *****")
+            logger.info("  Num examples = %d", len(test_examples))
+            logger.info("  Batch size = %d", args.eval_batch_size)
 
-        preds, result, scores = evaluate(
-            model, device, test_dataloader,
-            test_sent_type_labels_ids,
-            test_tags_sequence_labels_ids,
-            test_relations_sequence_labels_ids,
-            label2id,
-            compute_metrics=False
-        )
-        dest_file = test_file.split('/')[-1].replace('.json', '')
-        write_predictions(
-            args, test_new_examples, test_features,
-            preds, scores, dest_file,
-            label2id=label2id, id2label=id2label, metrics=result
-        )
+            test_dataloader, test_sent_type_labels_ids, \
+            test_tags_sequence_labels_ids, test_relations_sequence_labels_ids = \
+                get_dataloader_and_tensors(test_features, args.eval_batch_size)
+
+            preds, result, scores = evaluate(
+                model, device, test_dataloader,
+                test_sent_type_labels_ids,
+                test_tags_sequence_labels_ids,
+                test_relations_sequence_labels_ids,
+                label2id,
+                compute_metrics=False
+            )
+            dest_file = test_file.split('/')[-1].replace('.json', '')
+            write_predictions(
+                args, test_new_examples, test_features,
+                preds, scores, dest_file,
+                label2id=label2id, id2label=id2label, metrics=result
+            )
 
 
 def save_model(args, model, tokenizer, output_model_file):
