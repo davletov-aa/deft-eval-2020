@@ -27,7 +27,7 @@ def score_task_123(
             print(f'best task {task_id} predictions:')
             print(glob(best_task_predictions_regex))
 
-            for i, pool_type in enumerate(['max_score']):
+            for i, pool_type in enumerate(['max_score', 'ellections']):
                 if task_id == 3 and i == 1:
                     continue
 
