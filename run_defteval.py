@@ -239,6 +239,7 @@ def main(args):
             print('already computed: skipping ...')
             return
         else:
+            print(f'already existing {args.output_dir}. but without weight file and tsv files ...')
             os.system(f'rm -r {args.output_dir}')
 
 
