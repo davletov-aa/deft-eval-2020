@@ -13,6 +13,23 @@ SUBJECT_START = '⁄'
 SUBJECT_END = '⁄'
 
 
+class InputFeatures(object):
+
+    def __init__(
+            self, input_ids, input_mask, segment_ids,
+            sent_type_id, tags_sequence_ids, relations_sequence_ids,
+            orig_positions_map, token_valid_pos_ids=None
+        ):
+        self.input_ids = input_ids
+        self.input_mask = input_mask
+        self.segment_ids = segment_ids
+        self.sent_type_id = sent_type_id
+        self.tags_sequence_ids = tags_sequence_ids
+        self.relations_sequence_ids = relations_sequence_ids
+        self.orig_positions_map = orig_positions_map
+        self.token_valid_pos_ids = token_valid_pos_ids
+
+
 class XLNetForMultiLearning(XLNetPreTrainedModel):
 
     def __init__(
