@@ -657,7 +657,7 @@ def write_task_2_predictions(
 
     dataset.loc[:, 'tags_sequence_pred'] = preds
     if os.path.exists(output_dir):
-        assert ValueError(f'output_dir')
+        assert ValueError(f'{output_dir} is already exists')
     else:
         os.makedirs(output_dir, exist_ok=True)
 
@@ -775,3 +775,230 @@ def score_task_2_predictions(
         results[predictions_path] = scores
 
     return results
+
+
+def write_task_3_predictions(
+    task_3_dataset,
+    predictions_path: str,
+    output_dir: str
+):
+
+    if os.path.exists(output_dir):
+        assert ValueError(f'{output_dir} is already exists')
+    else:
+        os.makedirs(output_dir, exist_ok=True)
+
+    all_predictions = from_seqlab_to_defteval(predictions_path)
+
+    dataset = read_part(
+        data_part_dir=task_3_dataset,
+        task_id=3,
+        sep='\t',
+        check_if_correct=True,
+        do_filter=False
+    ) if isinstance(task_3_dataset, str) else task_3_dataset.copy()
+
+
+    dataset.loc[:, 'dest_files'] = dataset.source.apply(
+        lambda x: 'task_3_' + x[0].split('/')[-1]
+    )
+    dataset.loc[:, 'guid'] = [f'{index}' for index in range(len(dataset))]
+
+    print(dataset.tokens.values[0], '\n', all_predictions.tokens.values[0])
+
+    num_of_matches = 0
+
+    for dest_file in tqdm(
+        dataset.dest_files.unique(),
+        total=len(dataset.dest_files.unique())
+    ):
+        source_df = dataset[dataset.dest_files == dest_file].copy()
+        source_predictions = all_predictions[all_predictions.source == f'data/source_txt/{dest_file[len("task_3_"):]}']
+        dest_file = source_df.iloc[0].dest_files
+        if len(source_predictions) == 0:
+            print(dest_file, all_predictions.source.values[0])
+
+        i = 0
+        with open(os.path.join(output_dir, dest_file), 'w') as f:
+            for row in source_df.itertuples():
+                cur_prediction = source_predictions[
+                    source_predictions.tokens.apply(lambda x: x == row.tokens)
+                ]
+                if len(cur_prediction) > 0:
+                    num_of_matches += 1
+                    root_id = cur_prediction.iloc[0].root_ids
+                    relation = cur_prediction.iloc[0].relations_sequence_pred
+                else:
+                    root_id = ['-1'] * len(row.tokens)
+                    relation = ['0'] * len(row.tokens)
+
+                relation = relation + ['0'] * (len(row.tokens) - len(relation))
+                root_id = root_id + ['-1'] * (len(row.tokens) - len(root_id))
+
+                for tok, start, end, tag, tag_id, \
+                    root, rel, offset, source_to_write in zip(
+                        row.tokens,
+                        row.start_char,
+                        row.end_char,
+                        row.tag,
+                        row.tag_id,
+                        root_id,
+                        relation,
+                        row.infile_offsets,
+                        row.source
+                ):
+                    while i < offset:
+                        print('', file=f)
+                        i += 1
+                    print(
+                        f"{tok}\t{source_to_write}\t{start}\t{end}\t{tag}\t{tag_id}\t{root}\t{rel}",
+                        file=f
+                    )
+                    i += 1
+
+            print('', file=f)
+            print('', file=f)
+    print('percentage of matches:', num_of_matches / len(dataset) * 100)
+
+def from_seqlab_to_defteval(predictions_path: str):
+    print('from_seqlab_to_defteval:', predictions_path)
+    df = pd.read_csv(predictions_path, sep='\t')
+    columns_to_transform = [
+        'tags_ids', 'start_char', 'end_char', 'tags_sequence_labels',
+        'tags_sequence_pred', 'tags_sequence_scores',
+        'relations_sequence_labels', 'relations_sequence_pred',
+        'relations_sequence_scores'
+    ]
+    for column in columns_to_transform:
+        if 'scores' in column:
+            df.loc[:, column] = df[column].str.split(' ').apply(
+                lambda x: [float(y) for y in x]
+            )
+        else:
+            df.loc[:, column] = df[column].str.split(' ')
+
+    unique_sources = df.source.unique()
+    defteval_predictions = []
+    for i, unique_source in enumerate(unique_sources):
+        source_df = df[df.source == unique_source].copy()
+        unique_sentences = source_df.tokens.unique()
+        for j, unique_sentence in enumerate(unique_sentences):
+            unique_sentence_df = source_df[source_df.tokens == unique_sentence].copy()
+            unique_sentence_df.loc[:, 'tokens'] = \
+                unique_sentence_df.tokens.str.split(' ')
+
+            root_id, relation = \
+                get_root_id_and_relations_sequence_for_unique_sentence_group(
+                    unique_sentence_df
+                )
+            row = unique_sentence_df.iloc[0]
+            predictions = {
+                'tokens': row.tokens,
+                'source': row.source,
+                'start_char': row.start_char,
+                'end_char': row.end_char,
+                'tags_sequence_labels': row.tags_sequence_labels,
+                'tags_ids': row.tags_ids,
+                'root_ids': root_id,
+                'relations_sequence_pred': relation,
+                'guid': f'{unique_source}-{j}'
+            }
+            defteval_predictions.append(predictions)
+
+    return pd.DataFrame(defteval_predictions)
+
+
+def get_root_id_and_relations_sequence_for_unique_sentence_group(
+    unique_sentence_df
+):
+    df = unique_sentence_df.copy()
+    sent_len = len(df.iloc[0].tokens)
+    df = filter_relations_for_non_evaluated_tags(df, eval_tags=EVAL_TAGS)
+    df = df[df.relations_sequence_pred.apply(
+        lambda x: set(x) != {'0'}
+    )]
+    relation = ['0'] * sent_len
+    root_id = ['-1'] * sent_len
+    if len(df) == 0:
+        return root_id, relation
+    if len(df) == 1:
+        subj_start = df.iloc[0].subj_start
+        subj_end = df.iloc[0].subj_end
+        i_relation = df.iloc[0].relations_sequence_pred
+        tag_id = df.iloc[0].tags_ids[subj_start]
+        root_id = [tag_id if rel != '0' else '-1' for rel in i_relation]
+        root_id = [
+            '0' if subj_start <= i <= subj_end else root for i, root in enumerate(root_id)
+        ]
+        return root_id, i_relation
+
+    overlapping_roots_groups = get_overlapping_roots_groups(df)
+    scores = np.array([row for row in df.relations_sequence_scores])
+    mean_scores = np.mean(scores, axis=-1)
+    sorted_scores_id = np.argsort(mean_scores)
+
+    for i, overlapping_group in overlapping_roots_groups.items():
+        if len(overlapping_group) == 0:
+            row = df.iloc[i]
+            subj_start = row.subj_start
+            subj_end = row.subj_end
+            tag_id = row.tags_ids[subj_start]
+            i_relation = row.relations_sequence_pred
+            relation = add_relations(relation, i_relation)
+            root_id = [
+                '0' if subj_start <= i <= subj_end else root for i, root in enumerate(root_id)
+            ]
+            root_id = [root if rel == '0' else tag_id for rel, root in zip(i_relation, root_id)]
+            continue
+        overlapings = [i] + list(overlapping_group)
+        max_id = [i for i in sorted_scores_id if i in overlapings][-1]
+        max_row = df.iloc[max_id]
+        subj_start = max_row.subj_start
+        subj_end = max_row.subj_end
+        tag_id = max_row.tags_ids[subj_start]
+        i_relation = max_row.relations_sequence_pred
+        relation = add_relations(relation, i_relation)
+        root_id = ['0' if subj_start <= i <= subj_end else root for i, root in enumerate(root_id)]
+        root_id = [root if rel == '0' else tag_id for rel, root in zip(i_relation, root_id)]
+
+    return root_id, relation
+
+
+def add_relations(updates, old_relations):
+    return [
+        rel1 if rel2 == '0' else rel2 for rel1, rel2 in zip(updates, old_relations)
+    ]
+
+
+def filter_relations_for_non_evaluated_tags(predictions_dataset, eval_tags):
+    df = predictions_dataset.copy()
+    new_df = defaultdict(list)
+    for _, row in df.iterrows():
+        relation = row.relations_sequence_pred
+        tags = row.tags_sequence_labels
+        relation = [
+            rel if tag in eval_tags else '0' for rel, tag in zip(relation, tags)
+        ]
+        relation = [rel if rel in EVAL_RELATIONS else '0' for rel in relation]
+        for column in df.columns:
+            if column != 'relations_sequence_pred':
+                new_df[column].append(row[column])
+            else:
+                new_df[column].append(relation)
+    return pd.DataFrame(new_df)
+
+
+def get_overlapping_roots_groups(unique_sentence_df):
+    df = unique_sentence_df.copy()
+    result = {}
+    cache = {}
+    for i in range(len(df)):
+        tmp_res = set()
+        relation = cache.setdefault(i, df.iloc[i].relations_sequence_pred)
+        for j in range(i + 1, len(df)):
+            cur_relation = cache.setdefault(j, df.iloc[j].relations_sequence_pred)
+            if any([rel1 != '0' and rel2 != '0' for rel1, rel2 in zip(relation, cur_relation)]):
+                tmp_res.add(j)
+        if all([i not in overlaps for overlaps in result.values()]):
+            result[i] = tmp_res
+    return result

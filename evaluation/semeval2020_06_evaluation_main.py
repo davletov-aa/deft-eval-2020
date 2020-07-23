@@ -73,7 +73,7 @@ def main(config_path, ref_path, res_path, output_dir):
     if eval_task_3:
         print('task_3_eval_labels:', cfg['task_3']['eval_labels'])
         task_3_report = task_3_eval_main(ref_path, res_path, output_dir + '_task_3', cfg['task_3']['eval_labels'],
-                                         cfg['task_2']['eval_labels'])
+                                         cfg['task_3']['eval_labels'])
         if task_3_report:
             print(task_3_report)
         print()
