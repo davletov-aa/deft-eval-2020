@@ -552,16 +552,16 @@ def write_task_1_predictions(
     ) if isinstance(task_1_dataset, str) else \
         task_1_dataset.copy()
 
-    task_1_dataset.loc[:, 'tokens'] = task_1_dataset.tokens.apply(
-        lambda x: ' '.join(x).split(' ')
-    )
-
     sent_type_preds = []
     num_of_matches = 0
     for row in task_1_dataset.itertuples():
         tokens = row.tokens
         matched_sentences_preds = []
-        for prow in predictions.itertuples():
+        source_file = row.source
+        cur_predictions = predictions[
+            predictions.source == f'data/source_txt/{source_file[len("task_1_"):]}'
+        ].copy()
+        for prow in cur_predictions.itertuples():
             window = prow.tokens
             sent_start = prow.sent_start
             sent_end = prow.sent_end + 1
@@ -634,7 +634,11 @@ def write_task_2_predictions(
         window = row.tokens
         matched_predictions = []
         scores = []
-        for prow in predictions.itertuples():
+        source_file = row.source[0]
+        cur_predictions = predictions[
+            predictions.source == source_file
+        ].copy()
+        for prow in cur_predictions.itertuples():
             if window == prow.tokens:
                 matched_predictions.append(
                     list(prow.tags_sequence_pred) + \
