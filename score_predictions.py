@@ -27,7 +27,10 @@ def score_task_123(
             print(f'best task {task_id} predictions:')
             print(glob(best_task_predictions_regex))
 
-            for pool_type in ['max_score', 'ellections']:
+            for i, pool_type in enumerate(['max_score', 'ellections']):
+                if task_id == 3 and i == 1:
+                    continue
+
                 scores[f'{part}-{suffix[task_id]}-{pool_type}'] = score_tasks_predictions(
                     path_to_scorer_script=path_to_scorer_script,
                     path_to_gold_data=os.path.join(local_data_dir, f'task_{task_id}/{part}'),
