@@ -449,7 +449,7 @@ def main(args):
 
     else:
         model = models[model_name].from_pretrained(
-            dest_model_path,
+            dest_tmp_model_path,
             num_sent_type_labels=num_sent_type_labels,
             num_tags_sequence_labels=num_tags_sequence_labels,
             num_relations_sequence_labels=num_relations_sequence_labels,
