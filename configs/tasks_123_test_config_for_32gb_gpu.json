@@ -11,6 +11,6 @@
 	"seed": 42,
 	"do_eval": true,
 	"cuda_device": 0,
-    "test_file": "top_data/top_1_test.json8top_data/top_2_test.json8top_data/top_3_test.json*top_data/top_1_dev.json8top_data/top_2_dev.json8top_data/top_3_dev.json",
+    "test_file": "top_data/top_1_test.json8top_data/top_2_test.json8top_data/top_3_test.json8top_data/top_1_dev.json8top_data/top_2_dev.json8top_data/top_3_dev.json",
     "output_dir": "bert_stype_tags_and_relations_first_slen_256_eval_perep_4_linear/"
 }
