@@ -286,7 +286,7 @@ def write_to_scores(report, output_fname):
         json.dump(report, open(json_file, 'w'))
 
 
-def task_3_eval_main(ref_path, res_path,  output_dir, eval_relations, eval_labels):
+def task_3_eval_main(ref_path, res_path, output_dir, eval_relations, eval_labels):
     """Evaluate the data
     Inputs:
         gold_fname: path of .deft file
