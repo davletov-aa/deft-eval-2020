@@ -1,6 +1,5 @@
 from transformers.modeling_roberta import RobertaModel, RobertaConfig
 from transformers.modeling_bert import BertPreTrainedModel
-from transformers.tokenization_roberta import RobertaTokenizer
 from torch import nn
 from torch.nn import CrossEntropyLoss
 import torch
@@ -39,7 +38,7 @@ class RobertaForMultitaskLearning(BertPreTrainedModel):
 
     def __init__(
             self,
-            config: RobertaTokenizer,
+            config: RobertaConfig,
             num_sent_type_labels: int,
             num_tags_sequence_labels: int,
             num_relations_sequence_labels: int,
@@ -259,7 +258,8 @@ class RobertaForMultitaskLearning(BertPreTrainedModel):
     def convert_examples_to_features(
             self, examples, label2id,
             max_seq_length, tokenizer, logger,
-            sequence_mode: str = 'not-all'
+            sequence_mode: str = 'not-all',
+            context_mode: str = 'full'
     ):
         assert sequence_mode in ['all', 'not-all']
         num_tokens = 0

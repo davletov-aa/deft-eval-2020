@@ -239,7 +239,8 @@ class XLNetForMultiLearning(XLNetPreTrainedModel):
     def convert_examples_to_features(
             self, examples, label2id,
             max_seq_length, tokenizer, logger,
-            sequence_mode: str = 'not-all'
+            sequence_mode: str = 'not-all',
+            context_mode: str = 'full'
     ):
         assert sequence_mode in ['all', 'not-all']
         num_tokens = 0
