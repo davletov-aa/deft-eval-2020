@@ -233,7 +233,7 @@ def main(args):
     #     print(f'skipping ... {args.output_dir}: both tasks 1 and 3 weights below 1.0')
     #     return
 
-    if os.path.exists(args.output_dir):
+    if os.path.exists(args.output_dir) and args.do_train:
         from glob import glob
         tsv_files = glob(os.path.join(args.output_dir, '*best*tsv'))
         if tsv_files:
@@ -254,6 +254,27 @@ def main(args):
     # if args.output_dir in output_dirs_to_exclue:
     #     print(f'skipping ... {args.output_dir}: from exclude output dirs')
     #     return 0
+
+    # only for predicting
+    source_model = os.path.join(
+        args.output_dir, f'{args.model_prefix}pytorch_model.bin'
+    )
+    dest_model = os.path.join(
+        args.output_dir, 'pytorch_model.bin'
+    )
+    if args.do_eval:
+        if not os.path.exists(args.output_dir):
+            print(f'returning ... not found {args.output_dir}')
+            return
+        if not os.path.exists(
+            os.path.join(
+                args.output_dir,
+                source_model
+            )
+        ):
+            print(f'returning ... not found {source_model}')
+            return
+        os.system(f'cp {source_model} {dest_model}')
 
     device = torch.device(
         "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu")
@@ -769,6 +790,8 @@ def main(args):
                 label2id=label2id, id2label=id2label, metrics=result
             )
 
+        os.system(f'rm {dest_model}')
+
 
 def save_model(args, model, tokenizer, output_model_file):
     start = time.time()
@@ -996,6 +1019,8 @@ if __name__ == "__main__":
                         " dirs to exclude fome trainig")
     parser.add_argument("--skip_every_n_examples", type=int, default=30,
                         help="number examples in train set to skip in evaluating metrics")
+    parser.add_argument("--model_prefix", type=str, default='best_sent_type_1_f1-score_',
+                        help="pefix of the model weight")
 
     parsed_args = parser.parse_args()
     main(parsed_args)
