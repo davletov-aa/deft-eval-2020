@@ -6,6 +6,8 @@ from transformers.tokenization_roberta import RobertaTokenizer
 from torch.utils.data import DataLoader, TensorDataset
 from .multitask_bert import BertForMultitaskLearning
 from .multitask_roberta import RobertaForMultitaskLearning
+from .multitask_xlnet import XLNetForMultiLearning
+from transformers.configuration_xlnet import XLNetConfig
 import torch
 import os
 import json
@@ -215,10 +217,12 @@ tokenizers = {
 
 models = {
     "bert-large-uncased": BertForMultitaskLearning,
-    "roberta-large": RobertaForMultitaskLearning
+    "roberta-large": RobertaForMultitaskLearning,
+    "xlnet-large-cased": XLNetForMultiLearning
 }
 
 configs = {
     "bert-large-uncased": BertConfig,
-    "roberta-large": RobertaConfig
+    "roberta-large": RobertaConfig,
+    "xlnet-large-cased": XLNetConfig
 }

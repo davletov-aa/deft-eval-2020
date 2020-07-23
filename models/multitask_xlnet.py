@@ -1,7 +1,7 @@
 from transformers.modeling_xlnet import (
     XLNetPreTrainedModel, XLNetModel, SequenceSummary
 )
-from transformers.tokenization_xlnet import XLNetTokenizer
+from transformers.configuration_xlnet import XLNetConfig
 from torch import nn
 from torch.nn import CrossEntropyLoss
 import torch
@@ -17,7 +17,7 @@ class XLNetForMultiLearning(XLNetPreTrainedModel):
 
     def __init__(
             self,
-            config: XLNetTokenizer,
+            config: XLNetConfig,
             num_sent_type_labels: int,
             num_tags_sequence_labels: int,
             num_relations_sequence_labels: int,
@@ -483,4 +483,4 @@ class XLNetForMultiLearning(XLNetPreTrainedModel):
                 max_seq_length
         ))
 
-        return features
+        return features, examples
