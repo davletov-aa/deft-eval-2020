@@ -263,14 +263,8 @@ def main(args):
         args.output_dir, 'pytorch_model.bin'
     )
     if args.do_eval:
-        if not os.path.exists(args.output_dir):
-            print(f'returning ... not found {args.output_dir}')
-            return
         if not os.path.exists(
-            os.path.join(
-                args.output_dir,
                 source_model
-            )
         ):
             print(f'returning ... not found {source_model}')
             return
@@ -783,7 +777,7 @@ def main(args):
                 label2id,
                 compute_metrics=False
             )
-            dest_file = test_file.split('/')[-1].replace('.json', '')
+            dest_file = args.model_prefix + test_file.split('/')[-1].replace('.json', '')
             write_predictions(
                 args, test_new_examples, test_features,
                 preds, scores, dest_file,
