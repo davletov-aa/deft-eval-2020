@@ -247,9 +247,9 @@ def evaluate(y_gold_rel_pairs, y_pred_rel_pairs, eval_relations):
             f = (2 * p * r) / (p + r)
         except ZeroDivisionError:
             f = 0
-        report[eval_relation]['p'] = p
-        report[eval_relation]['r'] = r
-        report[eval_relation]['f'] = f
+        report[eval_relation]['precision'] = p
+        report[eval_relation]['recall'] = r
+        report[eval_relation]['f1-score'] = f
         running_p += p
         running_r += r
         running_f += f
@@ -257,10 +257,10 @@ def evaluate(y_gold_rel_pairs, y_pred_rel_pairs, eval_relations):
     macro_p = running_p / len(eval_relations)
     macro_r = running_r / len(eval_relations)
     macro_f = running_f / len(eval_relations)
-    report['macro'] = dict()
-    report['macro']['p'] = macro_p
-    report['macro']['r'] = macro_r
-    report['macro']['f'] = macro_f
+    report['macro avg'] = dict()
+    report['macro avg']['precision'] = macro_p
+    report['macro avg']['recall'] = macro_r
+    report['macro avg']['f1-score'] = macro_f
 
     return report
 
