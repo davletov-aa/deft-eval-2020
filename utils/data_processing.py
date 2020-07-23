@@ -705,7 +705,7 @@ def get_best_from_each_column(two_dim_array, two_dim_scores, pool_type='max_scor
     return best
 
 
-def score_task_1_predictions(
+def score_tasks_predictions(
     path_to_scorer_script: str,
     path_to_gold_data: str,
     path_to_eval_config: str,
@@ -713,19 +713,26 @@ def score_task_1_predictions(
     temp_output: str,
     clean_output: bool = True,
     scores_dir: str = 'scores',
-    pool_type: str = 'max_score'
+    pool_type: str = 'max_score',
+    task_id: int = 1
 ):
 
     if not os.path.exists(scores_dir):
         os.makedirs(scores_dir)
 
     results = {}
+    convert_predictions_to_deftval = {
+        1: write_task_1_predictions,
+        2: write_task_2_predictions,
+        3: write_task_3_predictions
+    }[task_id]
+    suffix = f'_task_{task_id}'
 
     for i, predictions_path in enumerate(glob(predictions_regex)):
         if clean_output:
             os.system(f'rm {temp_output}/*')
 
-        write_task_1_predictions(
+        convert_predictions_to_deftval(
             path_to_gold_data, predictions_path, temp_output, pool_type=pool_type
         )
 
@@ -736,42 +743,7 @@ def score_task_1_predictions(
             f'{temp_output} {scores_dir}' 
         )
 
-        scores = json.load(open(os.path.join(scores_dir + '_task_1', 'scores.json')))
-        results[predictions_path] = scores
-
-    return results
-
-
-def score_task_2_predictions(
-    path_to_scorer_script: str,
-    path_to_gold_data: str,
-    path_to_eval_config: str,
-    predictions_regex: str,
-    temp_output: str,
-    clean_output: bool = True,
-    scores_dir: str = 'scores',
-    pool_type: str = 'max_score'
-):
-
-    results = {}
-    if not os.path.exists(scores_dir):
-        os.makedirs(scores_dir)
-
-    for i, predictions_path in enumerate(glob(predictions_regex)):
-        if clean_output:
-            os.system(f'rm {temp_output}/*')
-        write_task_2_predictions(
-            path_to_gold_data, predictions_path, temp_output, pool_type=pool_type
-        )
-
-        os.system(
-            f'python {path_to_scorer_script} ' +
-            f'{path_to_eval_config} ' +
-            f'{path_to_gold_data} ' +
-            f'{temp_output} {scores_dir}'
-        )
-
-        scores = json.load(open(os.path.join(scores_dir + '_task_2', 'scores.json')))
+        scores = json.load(open(os.path.join(scores_dir + suffix, 'scores.json')))
         results[predictions_path] = scores
 
     return results
@@ -780,7 +752,8 @@ def score_task_2_predictions(
 def write_task_3_predictions(
     task_3_dataset,
     predictions_path: str,
-    output_dir: str
+    output_dir: str,
+    pool_type: str = ''
 ):
 
     if os.path.exists(output_dir):
