@@ -65,8 +65,8 @@ def search(itertation_id: int, config_path: str, grid_path: str, device_id: str 
 
 		model_dir = "-".join([f'{n}-{cur_params_dict[x]}' for x, n in zip(hyperparams, abbrs)])
 
-		if os.path.exists(os.path.join(output_dir, model_dir)):
-			continue
+		# if os.path.exists(os.path.join(output_dir, model_dir)):
+		# 	continue
 
 		iteration += 1
 		cmd.append(f'--output_dir+{os.path.join(output_dir, model_dir)};')
