@@ -18,7 +18,10 @@ abbrs = [
 ]
 
 
-def search(itertation_id: int, config_path: str, grid_path: str, device_id: str = ''):
+def search(
+	itertation_id: int, config_path: str, grid_path: str,
+	device_id: str = '', default_test_file: str = "true"
+):
 	config = json.load(open(config_path))
 	grid = json.load(open(grid_path))
 	device = config.pop('cuda_device')
@@ -35,7 +38,7 @@ def search(itertation_id: int, config_path: str, grid_path: str, device_id: str 
 			if value:
 				default_cmd.append(f'--{key}')
 			continue
-		if key == 'test_file':
+		if key == 'test_file' and default_test_file.lower() == 'true':
 			continue
 		default_cmd.append(f'--{key}+{value}')
 
