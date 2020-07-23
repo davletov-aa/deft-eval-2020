@@ -262,13 +262,16 @@ def main(args):
     dest_model = os.path.join(
         args.output_dir, 'pytorch_model.bin'
     )
+    rm_model = False
     if args.do_eval:
         if not os.path.exists(
                 source_model
         ):
             print(f'returning ... not found {source_model}')
             return
-        os.system(f'cp {source_model} {dest_model}')
+        if source_model != dest_model:
+            rm_model = True
+            os.system(f'cp {source_model} {dest_model}')
 
     device = torch.device(
         "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu")
@@ -784,8 +787,8 @@ def main(args):
                 preds, scores, dest_file,
                 label2id=label2id, id2label=id2label, metrics=result
             )
-
-        os.system(f'rm {dest_model}')
+        if rm_model:
+            os.system(f'rm {dest_model}')
 
 
 def save_model(args, model, tokenizer, output_model_file):
