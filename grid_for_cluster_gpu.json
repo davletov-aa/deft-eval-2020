@@ -25,5 +25,10 @@
     "0.1",
     "0.3",
     "1"
+  ],
+  "model_prefix": [
+    "best_sent_type_1_f1-score_",
+    "best_tags_sequence_macro-avg_f1-score_",
+    "best_relations_sequence_macro-avg_f1-score_"
   ]
 }

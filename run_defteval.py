@@ -5,6 +5,8 @@ import random
 import time
 import json
 from datetime import datetime
+import tempfile
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -271,7 +273,12 @@ def main(args):
             return
         if source_model != dest_model:
             rm_model = True
-            os.system(f'cp {source_model} {dest_model}')
+            dest_tmp_model_path = tempfile.mkdtemp()
+            os.system(f'cp {source_model} {os.path.join(dest_tmp_model_path, "pytorch_model.bin")}')
+            os.system(f'cp {os.path.join(args.output_dir, "config.json")} {os.path.join(dest_tmp_model_path, "config.json")}')
+            os.system(f'cp {os.path.join(args.output_dir, "vocab.txt")} {os.path.join(dest_tmp_model_path, "vocab.txt")}')
+        else:
+            dest_tmp_model_path = args.output_dir
 
     device = torch.device(
         "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu")
@@ -442,7 +449,7 @@ def main(args):
 
     else:
         model = models[model_name].from_pretrained(
-            args.output_dir,
+            dest_model_path,
             num_sent_type_labels=num_sent_type_labels,
             num_tags_sequence_labels=num_tags_sequence_labels,
             num_relations_sequence_labels=num_relations_sequence_labels,
@@ -787,8 +794,9 @@ def main(args):
                 preds, scores, dest_file,
                 label2id=label2id, id2label=id2label, metrics=result
             )
+
         if rm_model:
-            os.system(f'rm {dest_model}')
+            shutil.rmtree(dest_tmp_model_path)
 
 
 def save_model(args, model, tokenizer, output_model_file):
