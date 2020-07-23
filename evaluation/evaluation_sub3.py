@@ -278,7 +278,7 @@ def write_to_scores(report, output_fname):
         # scores_file.write('recall_macro: ' + report['macro']['r'])
 
         if report:
-            scores_file.write('subtask_3_f1-score_macro: ' + str(report['macro']['f']) + '\n')
+            scores_file.write('subtask_3_f1-score_macro: ' + str(report['macro avg']['f1-score']) + '\n')
         else:
             scores_file.write('subtask_3_f1-score_macro: -1\n')
 

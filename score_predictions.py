@@ -20,14 +20,14 @@ def score_task_123(
         2: 'best_tags_sequence',
         3: 'best_relations_sequence'
     }
-    for task_id in [1, 2, 3]:
+    for task_id in [1, 3]:
         for part in ['test', 'dev']:
             best_task_predictions_regex = \
                 f'{models_regex}/{part}_{suffix[task_id]}*.tsv'
             print(f'best task {task_id} predictions:')
             print(glob(best_task_predictions_regex))
 
-            for i, pool_type in enumerate(['max_score', 'ellections']):
+            for i, pool_type in enumerate(['max_score']):
                 if task_id == 3 and i == 1:
                     continue
 
