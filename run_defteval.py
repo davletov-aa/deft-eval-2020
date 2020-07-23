@@ -236,11 +236,11 @@ def main(args):
         from glob import glob
         tsv_files = glob(os.path.join(args.output_dir, '*best*tsv'))
         if tsv_files:
-            print('already computed: skipping')
+            print('already computed: skipping ...')
+            return
         else:
-            # os.system(f'rm -r {args.output_dir}')
-            print('not computed')
-            print(args.output_dir)
+            os.system(f'rm -r {args.output_dir}')
+
 
     assert args.context_mode in ['full', 'center', 'left', 'right']
 
