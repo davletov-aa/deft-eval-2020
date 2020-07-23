@@ -232,6 +232,14 @@ def main(args):
     if args.sent_type_clf_weight < 1 and args.relations_sequence_clf_weight < 1:
         print(f'skipping ... {args.output_dir}: both tasks 1 and 3 weights below 1.0')
         return
+    if os.path.exists(args.output_dir):
+        from glob import glob
+        tsv_files = glob(f'{args.output_dir}', '*best*tsv')
+        if tsv_files:
+            print('already computed: skipping')
+        else:
+            # os.system(f'rm -r {args.output_dir}')
+            print(args.output_dir)
 
     assert args.context_mode in ['full', 'center', 'left', 'right']
 
