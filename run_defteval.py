@@ -754,7 +754,7 @@ def main(args):
             args.data_dir, 'test.json'
         ) if args.test_file == '' else args.test_file
 
-        for test_file in test_files.split("+"):
+        for test_file in test_files.split("8"):
             test_examples = processor.get_test_examples(test_file)
 
             test_features, test_new_examples = model.convert_examples_to_features(
