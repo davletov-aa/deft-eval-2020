@@ -463,22 +463,23 @@ def main(args):
     eval_tags_sequence_labels_ids, eval_relations_sequence_labels_ids = \
         get_dataloader_and_tensors(eval_features, args.eval_batch_size)
 
-    test_file = os.path.join(
-        args.data_dir, 'test.json'
-    ) if args.test_file == '' else args.test_file
-    test_examples = processor.get_test_examples(test_file)
+    if not args.do_eval:
+        test_file = os.path.join(
+            args.data_dir, 'test.json'
+        ) if args.test_file == '' else args.test_file
+        test_examples = processor.get_test_examples(test_file)
 
-    test_features, test_new_examples = model.convert_examples_to_features(
-        test_examples, label2id, args.max_seq_length,
-        tokenizer, logger, args.sequence_mode, context_mode=args.context_mode
-    )
-    logger.info("***** Test *****")
-    logger.info("  Num examples = %d", len(test_examples))
-    logger.info("  Batch size = %d", args.eval_batch_size)
+        test_features, test_new_examples = model.convert_examples_to_features(
+            test_examples, label2id, args.max_seq_length,
+            tokenizer, logger, args.sequence_mode, context_mode=args.context_mode
+        )
+        logger.info("***** Test *****")
+        logger.info("  Num examples = %d", len(test_examples))
+        logger.info("  Batch size = %d", args.eval_batch_size)
 
-    test_dataloader, test_sent_type_labels_ids, \
-    test_tags_sequence_labels_ids, test_relations_sequence_labels_ids = \
-        get_dataloader_and_tensors(test_features, args.eval_batch_size)
+        test_dataloader, test_sent_type_labels_ids, \
+        test_tags_sequence_labels_ids, test_relations_sequence_labels_ids = \
+            get_dataloader_and_tensors(test_features, args.eval_batch_size)
 
     if args.do_train:
         train_examples = processor.get_train_examples(args.data_dir)
