@@ -11,10 +11,11 @@ hyperparams = [
 	'dropout',
 	'sent_type_clf_weight',
 	'tags_sequence_clf_weight',
-	'relations_sequence_clf_weight'
+	'relations_sequence_clf_weight',
+	'context_mode'
 ]
 abbrs = [
-	'lr', 'wd', 'drp', 'w1', 'w2', 'w3'
+	'lr', 'wd', 'drp', 'w1', 'w2', 'w3', 'ctx'
 ]
 
 
