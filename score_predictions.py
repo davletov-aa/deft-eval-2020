@@ -12,7 +12,6 @@ def score_task_12(
     save_path: str = 'scores.json'
 ):
     path_to_scorer_script = 'evaluation/semeval2020_06_evaluation_main.py'
-    path_to_eval_config = 'evaluation/configs/eval_test.yaml'
 
     scores = {}
     suffix = {
@@ -33,7 +32,6 @@ def score_task_12(
                 scores[f'{part}-{suffix[task_id]}-{pool_type}'] = score_tasks_predictions(
                     path_to_scorer_script=path_to_scorer_script,
                     path_to_gold_data=os.path.join(local_data_dir, f'task_{task_id}/{part}'),
-                    path_to_eval_config=path_to_eval_config,
                     predictions_regex=best_task_predictions_regex,
                     temp_output='temp_output',
                     clean_output=True,
@@ -54,7 +52,6 @@ def score_task_123(
     save_path: str = 'scores.json'
 ):
     path_to_scorer_script = 'evaluation/semeval2020_06_evaluation_main.py'
-    path_to_eval_config = 'evaluation/configs/eval_test.yaml'
 
     scores = {}
     suffix = {
