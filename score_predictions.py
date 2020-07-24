@@ -41,8 +41,7 @@ def score_task_12(
                     pool_type=pool_type,
                     task_id=task_id
                 )
-    if os.path.exists(save_path):
-        save_path += '-1.json'
+
     json.dump(scores, open(save_path, 'w'))
     print(scores)
 
@@ -77,7 +76,6 @@ def score_task_123(
                 scores[f'{part}-{suffix[task_id]}-{pool_type}'] = score_tasks_predictions(
                     path_to_scorer_script=path_to_scorer_script,
                     path_to_gold_data=os.path.join(local_data_dir, f'task_{task_id}/{part}'),
-                    path_to_eval_config=path_to_eval_config,
                     predictions_regex=best_task_predictions_regex,
                     temp_output='temp_output',
                     clean_output=True,
@@ -85,8 +83,7 @@ def score_task_123(
                     pool_type=pool_type,
                     task_id=task_id
                 )
-    if os.path.exists(save_path):
-        save_path += '-1.json'
+
     json.dump(scores, open(save_path, 'w'))
     print(scores)
 

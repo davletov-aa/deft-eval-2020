@@ -712,7 +712,6 @@ def get_best_from_each_column(two_dim_array, two_dim_scores, pool_type='max_scor
 def score_tasks_predictions(
     path_to_scorer_script: str,
     path_to_gold_data: str,
-    path_to_eval_config: str,
     predictions_regex: str,
     temp_output: str,
     clean_output: bool = True,
@@ -720,9 +719,6 @@ def score_tasks_predictions(
     pool_type: str = 'max_score',
     task_id: int = 1
 ):
-
-    if not os.path.exists(scores_dir):
-        os.makedirs(scores_dir)
 
     results = {}
     convert_predictions_to_deftval = {
@@ -742,9 +738,11 @@ def score_tasks_predictions(
 
         os.system(
             f'python {path_to_scorer_script} ' +
-            f'{path_to_eval_config} ' +
             f'{path_to_gold_data} ' +
-            f'{temp_output} {scores_dir}' 
+            f'{temp_output} {scores_dir} ' +
+            f'--eval_task_1 {"true" if task_id == 1 else "false"} ' +
+            f'--eval_task_2 {"true" if task_id == 2 else "false"} ' +
+            f'--eval_task_3 {"true" if task_id == 3 else "false"}'
         )
 
         scores = json.load(open(os.path.join(scores_dir + suffix, 'scores.json')))

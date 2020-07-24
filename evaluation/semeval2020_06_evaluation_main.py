@@ -36,53 +36,73 @@ import sys
 import fire
 
 
-def main(config_path, ref_path, res_path, output_dir):
+EVAL_RELATIONS = [
+    'Direct-Defines', 'Indirect-Defines', 'AKA', 'Refers-To', 'Supplements'
+]
+
+
+EVAL_TAGS = [
+    'B-Term', 'I-Term', 'B-Definition', 'I-Definition',
+    'B-Alias-Term', 'I-Alias-Term', 'B-Referential-Definition', 'I-Referential-Definition',
+    'B-Referential-Term', 'I-Referential-Term', 'B-Qualifier', 'I-Qualifier'
+]
+
+EVAL_SENT_TYPES = [
+    '0', '1'
+]
+
+
+def main(
+    ref_path, res_path, output_dir,
+    eval_task_1: str = "false",
+    eval_task_2: str = "false",
+    eval_task_3: str = "false"
+):
     """Run the evaluation script(s)
-    Inputs:
-        cfg: configuration dictionary loaded from yaml
     """
 
-    cfg = safe_load(Path(config_path).open())
     ref_path = Path(ref_path)
     res_path = Path(res_path)
-    for i in ['1', '2', '3']:
-        os.makedirs(output_dir + f'_task_{i}', exist_ok=True)
+    eval_task_1 = eval_task_1.lower() == 'true'
+    eval_task_2 = eval_task_2.lower() == 'true'
+    eval_task_3 = eval_task_3.lower() == 'true'
 
-    eval_task_1 = cfg['task_1']['do_eval']
-    eval_task_2 = cfg['task_2']['do_eval']
-    eval_task_3 = cfg['task_3']['do_eval']
+    for eval_task_id, eval_task in enumerate([eval_task_1, eval_task_2, eval_task_3], start=1):
+        if eval_task:
+            os.makedirs(output_dir + f'_task_{eval_task_id}', exist_ok=True)
+
 
     task_1_report = '-1'
     task_2_report = '-1'
     task_3_report = '-1'
 
     if eval_task_1:
-        print('task_1_eval_labels:', cfg['task_1']['eval_labels'])
-        task_1_report = task_1_eval_main(ref_path, res_path, output_dir + '_task_1', cfg['task_1']['eval_labels'])
+        print('task_1_eval_labels:', EVAL_SENT_TYPES)
+        task_1_report = task_1_eval_main(ref_path, res_path, output_dir + '_task_1', EVAL_SENT_TYPES)
         if task_1_report:
             print(task_1_report)
         print()
 
     if eval_task_2:
-        print('task_2_eval_labels:', cfg['task_2']['eval_labels'])
-        task_2_report = task_2_eval_main(ref_path, res_path, output_dir + '_task_2', cfg['task_2']['eval_labels'])
+        print('task_2_eval_labels:', EVAL_TAGS)
+        task_2_report = task_2_eval_main(ref_path, res_path, output_dir + '_task_2', EVAL_TAGS)
         if task_2_report:
             print(task_2_report)
         print()
 
     if eval_task_3:
-        print('task_3_eval_labels:', cfg['task_3']['eval_labels'])
-        task_3_report = task_3_eval_main(ref_path, res_path, output_dir + '_task_3', cfg['task_3']['eval_labels'],
-                                         cfg['task_2']['eval_labels'])
+        print('task_3_eval_labels:', EVAL_RELATIONS)
+        task_3_report = task_3_eval_main(ref_path, res_path, output_dir + '_task_3', EVAL_RELATIONS,
+                                         EVAL_TAGS)
         if task_3_report:
             print(task_3_report)
         print()
 
-    return {
-        "task_1": task_1_report,
-        "task_2": task_2_report,
-        "task_3": task_3_report,
-    }
+    # return {
+    #     "task_1": task_1_report,
+    #     "task_2": task_2_report,
+    #     "task_3": task_3_report,
+    # }
 
 if __name__ == "__main__":
     fire.Fire(main)
