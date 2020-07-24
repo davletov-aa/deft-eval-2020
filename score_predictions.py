@@ -59,10 +59,14 @@ def score_task_123(
         2: 'best_tags_sequence',
         3: 'best_relations_sequence'
     }
-    for task_id in [1, 3]:
+    for task_id in [1]:
         for part in ['test', 'dev']:
-            best_task_predictions_regex = \
-                f'{models_regex}/{part}_{suffix[task_id]}*.tsv'
+            if task_id != 1:
+                best_task_predictions_regex = \
+                    f'{models_regex}/{part}_{suffix[task_id]}*.tsv'
+            else:
+                best_task_predictions_regex = \
+                    f'{models_regex}/{part}_{suffix[3]}*.tsv'
             print(f'best task {task_id} predictions:')
             print(glob(best_task_predictions_regex))
 
