@@ -38,7 +38,7 @@ def get_label(row):
     Returns:
         label: string
     """
-    return row[-1].strip()
+    return row[4].strip()
 
 
 def validate_length(gold_rows, pred_rows):
