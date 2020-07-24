@@ -1,13 +1,16 @@
 {
-	"model": "bert-large-uncased",
-	"data_dir": "data",
-	"max_seq_length": 256,
-	"eval_batch_size": 8,
-	"filter_task_1": false,
-	"filter_task_3": true,
-	"subtokens_pooling_type": "first",
-	"sequence_mode": "not-all",
-	"no_cuda": false,
-	"seed": 42,
-	"do_eval": true
+    "model": "bert-large-uncased",
+    "data_dir": "data",
+    "max_seq_length": 256,
+    "eval_batch_size": 8,
+    "filter_task_1": false,
+    "filter_task_3": true,
+    "subtokens_pooling_type": "first",
+    "sequence_mode": "not-all",
+    "no_cuda": false,
+    "seed": 42,
+    "do_eval": true,
+    "cuda_device": 0,
+    "test_file": "data/test.json8data/dev.json",
+    "output_dir": "bert_stype_tags_first_slen_256_eval_perep_4_linear/"
 }
